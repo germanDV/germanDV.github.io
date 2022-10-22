@@ -6,10 +6,10 @@ import (
 )
 
 func main() {
-	// Convert MD to HTML
+	// Convert MD to HTML and save it.
 	editor.ToHTML("test.md")
 
-	// Start server
+	// Start server.
 	s := server.New(4000)
 	s.Listen()
 }

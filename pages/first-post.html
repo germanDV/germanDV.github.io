@@ -1,7 +1,18 @@
-{{define "body"}}
-<main>
-<time datetime="2022-10-18">2022-10-18</time>
-<h1>This is the title</h1>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>germandv</title>
+  <link rel="stylesheet" href="/pages/assets/main.css">
+  <link rel="stylesheet" href="/pages/assets/github-dark.min.css">
+  <script src="/pages/assets/highlight.min.js"></script>
+</head>
+<body class="gruvbox">
+  <main>
+    <time datetime="2022-10-18">Published 2022-10-18</time>
+    <h1>This is the title</h1>
 
 <p>This is inline code <code>fs := http.FileServer(http.Dir(&quot;./static&quot;))</code>.</p>
 
@@ -69,5 +80,7 @@ pub struct ApplicationSettings {
 </code></pre>
 
 <p>And that&rsquo;s all for now.</p>
-</main>
-{{end}}
+
+  </main>
+  <script>hljs.highlightAll();</script>
+</body>

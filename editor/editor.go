@@ -4,12 +4,19 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"html/template"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/russross/blackfriday/v2"
 )
+
+type Entry struct {
+	Title     string
+	Published string
+	Body      template.HTML
+}
 
 func readFrontMatter(scanner *bufio.Scanner) (map[string]string, error) {
 	frontMatter := make(map[string]string)
@@ -83,29 +90,39 @@ func parseMd(filename string) (map[string]string, []byte, error) {
 }
 
 func ToHTML(filename string) error {
-	frontMatter, body, err := parseMd(filename)
+	entry := Entry{}
 
+	frontMatter, body, err := parseMd(filename)
 	published, ok := frontMatter["published"]
 	if !ok {
 		return errors.New("Missing published date in front matter")
 	}
-
 	title, ok := frontMatter["title"]
 	if !ok {
 		return errors.New("Missing title date in front matter")
 	}
 
-	dst := title + ".html"
-	f, err := os.Create(filepath.Join("templates", dst))
+	entry.Title = title
+	entry.Published = published
+	entry.Body = template.HTML(blackfriday.Run(body))
+
+	dst := fmt.Sprintf("%s.html", entry.Title)
+	f, err := os.Create(filepath.Join("pages", dst))
 	if err != nil {
 		return err
 	}
 	defer f.Close()
 
-	output := blackfriday.Run(body)
-	f.WriteString("{{define \"body\"}}\n<main>\n")
-	f.WriteString(fmt.Sprintf("<time datetime=%q>%s</time>\n", published, published))
-	f.Write(output)
-	f.WriteString("</main>\n{{end}}")
+	layout := filepath.Join("templates", "layout.html")
+	tmpl, err := template.ParseFiles(layout)
+	if err != nil {
+		return err
+	}
+
+	err = tmpl.ExecuteTemplate(f, "layout", entry)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

@@ -5,12 +5,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>germandv</title>
-  <link rel="stylesheet" href="/static/assets/main.css">
-  <link rel="stylesheet" href="/static/assets/github-dark.min.css">
-  <script src="/static/assets/highlight.min.js"></script>
+  <link rel="stylesheet" href="/pages/assets/main.css">
+  <link rel="stylesheet" href="/pages/assets/github-dark.min.css">
+  <script src="/pages/assets/highlight.min.js"></script>
 </head>
 <body class="gruvbox">
-  {{template "body"}}
+  <main>
+    <time datetime="{{.Published}}">Published {{.Published}}</time>
+    {{.Body}}
+  </main>
   <script>hljs.highlightAll();</script>
 </body>
 {{end}}
