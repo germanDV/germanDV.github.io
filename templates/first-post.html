@@ -1,0 +1,73 @@
+{{define "body"}}
+<main>
+<time datetime="2022-10-18">2022-10-18</time>
+<h1>This is the title</h1>
+
+<p>This is inline code <code>fs := http.FileServer(http.Dir(&quot;./static&quot;))</code>.</p>
+
+<p>Paragraph 1. Obcaecati distinctio blanditiis tempora. <strong>Deserunt magnam, assumenda ab corporis natus ipsam odit libero culpa</strong>. Iure, recusandae ex! Eaque totam mollitia voluptatibus quibusdam veritatis, alias quis, fuga, id odit aperiam facilis?</p>
+
+<p>Paragraph 2. Ex earum blanditiis esse error accusantium natus ducimus fuga! Voluptatem consequuntur repudiandae nihil quae, at numquam est architecto neque odit. Earum optio recusandae provident, aut placeat mollitia fugit cum quos. Pariatur, quod! Blanditiis illo velit officia quod molestiae libero nisi, minima quia. <em>Itaque sapiente suscipit, similique fugit voluptatum consequatur ea corrupti ex omnis illo, modi deserunt praesentium mollitia nemo dignissimos</em>.</p>
+
+<p>Paragraph 3. Tiene este link a <a href="https://debian.org">debian</a> Lorem ipsum dolor sit amet consectetur, adipisicing elit. Officiis nulla culpa, ratione quibusdam voluptatum eos saepe facere, corporis illo iusto, voluptas commodi veniam blanditiis quidem molestias voluptatem quam sit repellat!</p>
+
+<p>Some Go code:</p>
+
+<pre><code class="language-go">func main() {
+  fs := http.FileServer(http.Dir(&quot;./static&quot;))
+  http.Handle(&quot;/static/&quot;, http.StripPrefix(&quot;/static/&quot;, fs))
+
+  // serveTemplate is defined somewhere else.
+  http.HandleFunc(&quot;/&quot;, serveTemplate)
+
+  log.Print(&quot;Server up on :4000&quot;)
+  err := http.ListenAndServe(&quot;:4000&quot;, nil)
+  if err != nil {
+    log.Fatal(err)
+  }
+}
+</code></pre>
+
+<p>Some TS code:</p>
+
+<pre><code class="language-typescript">import util from 'node:util'
+
+export default class Secret&lt;T&gt; {
+  private value: T
+
+  constructor(value: T) {
+    this.value = value
+  }
+
+  public expose(): T {
+    return this.value
+  }
+
+  // Return a string with access denied message, instead of throwing an error.
+  public toString(): string {
+    return 'Secret value access denied, call `expose()` on it to read it.'
+  }
+
+  public toJSON(): { value: string } {
+    return { value: this.toString() }
+  }
+
+  public [util.inspect.custom](): string {
+    return this.toString()
+  }
+}
+</code></pre>
+
+<p>Some Rust code:</p>
+
+<pre><code class="language-rust">#[derive(serde::Deserialize)]
+pub struct ApplicationSettings {
+    #[serde(deserialize_with = &quot;deserialize_number_from_string&quot;)]
+    pub port: u16,
+    pub host: String,
+}
+</code></pre>
+
+<p>And that&rsquo;s all for now.</p>
+</main>
+{{end}}
