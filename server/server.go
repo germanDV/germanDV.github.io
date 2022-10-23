@@ -33,6 +33,7 @@ func New(port int) *Server {
 
 func (s *Server) Listen() {
 	s.registerHealthCheckHandler()
+	s.registerAnalyticsHandler()
 	s.registerStaticHandler()
 
 	log.Printf("Server up on :%d\n", s.port)
@@ -45,11 +46,19 @@ func (s *Server) Listen() {
 func (s *Server) registerStaticHandler() {
 	fs := http.FileServer(http.Dir("./pages"))
 	fsWithTimeout := http.TimeoutHandler(fs, 5*time.Second, "Timeout\n")
-	s.mux.Handle("/blog/", http.StripPrefix("/blog/", fsWithTimeout))
+	s.mux.Handle("/blog/", http.StripPrefix("/blog/", logger(fsWithTimeout)))
 }
 
 func (s *Server) registerHealthCheckHandler() {
-	s.mux.HandleFunc("/health_check", func(w http.ResponseWriter, r *http.Request) {
+	handler := func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-	})
+	}
+	s.mux.Handle("/health_check", logger(http.HandlerFunc(handler)))
+}
+
+func (s *Server) registerAnalyticsHandler() {
+	handler := func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("Top secret data\n"))
+	}
+	s.mux.Handle("/analytics", logger(basicAuth(http.HandlerFunc(handler))))
 }
