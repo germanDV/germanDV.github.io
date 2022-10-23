@@ -4,22 +4,39 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 )
 
 type Server struct {
-	port int
+	mux    *http.ServeMux
+	server *http.Server
+	port   int
 }
 
 func New(port int) *Server {
-	return &Server{port}
+	mux := &http.ServeMux{}
+
+	server := &http.Server{
+		Addr:         fmt.Sprintf(":%d", port),
+		ReadTimeout:  5 * time.Second,
+		WriteTimeout: 10 * time.Second,
+		IdleTimeout:  60 * time.Second,
+		Handler:      mux,
+	}
+
+	return &Server{
+		server: server,
+		mux:    mux,
+		port:   port,
+	}
 }
 
 func (s *Server) Listen() {
+	s.registerHealthCheckHandler()
 	s.registerStaticHandler()
 
-	port := fmt.Sprintf(":%d", s.port)
-	log.Printf("Server up on %s\n", port)
-	err := http.ListenAndServe(port, nil)
+	log.Printf("Server up on :%d\n", s.port)
+	err := s.server.ListenAndServe()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -27,6 +44,12 @@ func (s *Server) Listen() {
 
 func (s *Server) registerStaticHandler() {
 	fs := http.FileServer(http.Dir("./pages"))
-	// http.Handle("/pages/", http.StripPrefix("/pages/", fs))
-	http.Handle("/", fs)
+	fsWithTimeout := http.TimeoutHandler(fs, 5*time.Second, "Timeout\n")
+	s.mux.Handle("/blog/", http.StripPrefix("/blog/", fsWithTimeout))
+}
+
+func (s *Server) registerHealthCheckHandler() {
+	s.mux.HandleFunc("/health_check", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
 }
