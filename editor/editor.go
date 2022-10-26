@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/russross/blackfriday/v2"
 )
@@ -15,7 +16,49 @@ import (
 type Entry struct {
 	Title     string
 	Published string
+	Revision  string
 	Body      template.HTML
+}
+
+func (e *Entry) scanFrontMatter(fm map[string]string) error {
+	published, ok := fm["published"]
+	if !ok {
+		return errors.New("Missing published date in front matter")
+	}
+	formattedPublished, err := formatDate(published)
+	if err != nil {
+		return err
+	}
+	e.Published = formattedPublished
+
+	revision, ok := fm["revision"]
+	if ok {
+		formattedRevision, err := formatDate(revision)
+		if err != nil {
+			return err
+		}
+		e.Revision = formattedRevision
+	} else {
+		e.Revision = ""
+	}
+
+	title, ok := fm["title"]
+	if !ok {
+		return errors.New("Missing title date in front matter")
+	}
+	e.Title = title
+
+	return nil
+}
+
+func formatDate(dateStr string) (string, error) {
+	inLayout := "2006-01-02"
+	outLayout := "January 2, 2006"
+	parsed, err := time.Parse(inLayout, dateStr)
+	if err != nil {
+		return "", err
+	}
+	return parsed.Format(outLayout), nil
 }
 
 func readFrontMatter(scanner *bufio.Scanner) (map[string]string, error) {
@@ -91,19 +134,13 @@ func parseMd(filename string) (map[string]string, []byte, error) {
 
 func ToHTML(filename string) error {
 	entry := Entry{}
-
 	frontMatter, body, err := parseMd(filename)
-	published, ok := frontMatter["published"]
-	if !ok {
-		return errors.New("Missing published date in front matter")
-	}
-	title, ok := frontMatter["title"]
-	if !ok {
-		return errors.New("Missing title date in front matter")
+
+	err = entry.scanFrontMatter(frontMatter)
+	if err != nil {
+		return err
 	}
 
-	entry.Title = title
-	entry.Published = published
 	entry.Body = template.HTML(blackfriday.Run(body))
 
 	dst := fmt.Sprintf("%s.html", entry.Title)
