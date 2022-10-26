@@ -1,3 +1,0 @@
-Light theme to steal:
-    https://www.alexedwards.net/blog/serving-static-sites-with-go
-
