@@ -135,6 +135,9 @@ func parseMd(filename string) (map[string]string, []byte, error) {
 func ToHTML(filename string) error {
 	entry := Entry{}
 	frontMatter, body, err := parseMd(filename)
+	if err != nil {
+		return err
+	}
 
 	err = entry.scanFrontMatter(frontMatter)
 	if err != nil {
