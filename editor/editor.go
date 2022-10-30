@@ -8,58 +8,10 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
 
+	"germandv.xyz/entry"
 	"github.com/russross/blackfriday/v2"
 )
-
-type Entry struct {
-	Title     string
-	Published string
-	Revision  string
-	Body      template.HTML
-}
-
-func (e *Entry) scanFrontMatter(fm map[string]string) error {
-	published, ok := fm["published"]
-	if !ok {
-		return errors.New("Missing published date in front matter")
-	}
-	formattedPublished, err := formatDate(published)
-	if err != nil {
-		return err
-	}
-	e.Published = formattedPublished
-
-	revision, ok := fm["revision"]
-	if ok {
-		formattedRevision, err := formatDate(revision)
-		if err != nil {
-			return err
-		}
-		e.Revision = formattedRevision
-	} else {
-		e.Revision = ""
-	}
-
-	title, ok := fm["title"]
-	if !ok {
-		return errors.New("Missing title date in front matter")
-	}
-	e.Title = title
-
-	return nil
-}
-
-func formatDate(dateStr string) (string, error) {
-	inLayout := "2006-01-02"
-	outLayout := "January 2, 2006"
-	parsed, err := time.Parse(inLayout, dateStr)
-	if err != nil {
-		return "", err
-	}
-	return parsed.Format(outLayout), nil
-}
 
 func readFrontMatter(scanner *bufio.Scanner) (map[string]string, error) {
 	frontMatter := make(map[string]string)
@@ -132,14 +84,15 @@ func parseMd(filename string) (map[string]string, []byte, error) {
 	return frontMatter, body, nil
 }
 
-func ToHTML(filename string) error {
-	entry := Entry{}
+// Publish reads the .md file from entries/, converts it to .html and saves it in pages/.
+// It also adds a link to the newly published entry to the index.
+func Publish(filename string) error {
 	frontMatter, body, err := parseMd(filename)
 	if err != nil {
 		return err
 	}
 
-	err = entry.scanFrontMatter(frontMatter)
+	entry, err := entry.NewFromFrontMatter(frontMatter)
 	if err != nil {
 		return err
 	}
@@ -160,6 +113,31 @@ func ToHTML(filename string) error {
 	}
 
 	err = tmpl.ExecuteTemplate(f, "layout", entry)
+	if err != nil {
+		return err
+	}
+
+	// TODO: add link to index
+
+	return nil
+}
+
+// Draft creates a .md file in entries/ and pre-populates the front matter.
+func Draft(title string) error {
+	filename := title + ".md"
+
+	f, err := os.Create(filepath.Join("entries", filename))
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	tpl, err := template.ParseFiles(filepath.Join("templates", "entry.md"))
+	if err != nil {
+		return err
+	}
+
+	err = tpl.Execute(f, entry.New(title))
 	if err != nil {
 		return err
 	}
