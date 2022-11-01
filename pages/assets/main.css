@@ -166,7 +166,7 @@ time {
 }
 
 .index {
-    min-height: 100vh;
+    min-height: calc(100vh - 100px - 2px);
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -182,4 +182,27 @@ time {
 }
 .index > ul > li > a:hover {
     color: var(--main-text-color);
+}
+
+footer {
+   border-top: 2px solid var(--accent-bg-color); 
+}
+
+footer > nav {
+    height: 100px;
+    display: grid;
+    column-gap: 128px;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    align-items: center;
+}
+
+footer > nav > div {
+    display: flex;
+    justify-content: space-evenly;
+}
+
+footer > nav > div > img {
+   border: 2px solid var(--accent-bg-color); 
+   border-radius: 8px;
+   cursor: pointer;
 }

@@ -15,7 +15,6 @@ import (
 //    - Gzip http responses
 //    - Add RSS feed
 //    - Add Favicon
-//    - Add theme switcher
 //    - Add SQLite to count views
 
 func main() {
@@ -66,7 +65,7 @@ func publish(title string) {
 
 	err = editor.GenerateIndex()
 	if err != nil {
-		fmt.Printf("Error generating index.html")
+		fmt.Println("Error generating index.html")
 		fmt.Println(err)
 		os.Exit(1)
 	}

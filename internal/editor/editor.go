@@ -112,7 +112,9 @@ func GenerateIndex() error {
 	}
 	defer indexWriter.Close()
 
-	tmpl, err := template.ParseFiles(filepath.Join("templates", "index.html"))
+	index := filepath.Join("templates", "index.html")
+	footer := filepath.Join("templates", "footer.html")
+	tmpl, err := template.ParseFiles(index, footer)
 	if err != nil {
 		return err
 	}
@@ -148,7 +150,8 @@ func Publish(filename string) error {
 	defer f.Close()
 
 	layout := filepath.Join("templates", "layout.html")
-	tmpl, err := template.ParseFiles(layout)
+	footer := filepath.Join("templates", "footer.html")
+	tmpl, err := template.ParseFiles(layout, footer)
 	if err != nil {
 		return err
 	}
