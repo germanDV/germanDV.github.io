@@ -10,6 +10,14 @@ import (
 	"germandv.xyz/internal/server"
 )
 
+// TODO:
+//    - Embed all assets so binary is self-contained
+//    - Gzip http responses
+//    - Add RSS feed
+//    - Add Favicon
+//    - Add theme switcher
+//    - Add SQLite to count views
+
 func main() {
 	startServer := flag.Bool("serve", false, "Start web server")
 	entryToPublish := flag.String("publish", "", "Entry to be published")
