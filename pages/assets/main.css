@@ -94,6 +94,7 @@ main {
 }
 
 h1 {
+  font-size: 3rem;
   font-weight: bold;
   margin: 1rem 0 3rem 0;
   text-transform: capitalize;
@@ -167,8 +168,8 @@ time {
 .index {
     min-height: 100vh;
     display: flex;
-    align-items: center;
-    font-size: 2rem;
+    flex-direction: column;
+    justify-content: center;
 }
 .index > ul {
    list-style-type: none;
@@ -177,6 +178,7 @@ time {
     text-decoration: none;
     transition-duration: .5s;
     text-transform: capitalize;
+    font-size: 1.75rem;
 }
 .index > ul > li > a:hover {
     color: var(--main-text-color);
