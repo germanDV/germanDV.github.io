@@ -11,16 +11,20 @@
 </head>
 <body class="gruvbox">
   <main>
-    {{if ne .Published .Revision}}
-      <div class="dates">
-        <time datetime="{{.Published}}"><b>Published</b> {{.Published}}</time>
-        <time datetime="{{.Revision}}"><b>Last Revision</b> {{.Revision}}</time>
-      </div>
-    {{else}}
-      <div class="dates">
-        <time datetime="{{.Published}}"><b>Published</b> {{.Published}}</time>
-      </div>
-    {{end}}
+    <header class="entry">
+      <a href="/">&larr;</a>
+
+      {{if ne .Published .Revision}}
+        <div class="dates">
+          <time datetime="{{.Published}}"><b>Published</b> {{.Published}}</time>
+          <time datetime="{{.Revision}}"><b>Last Revision</b> {{.Revision}}</time>
+        </div>
+      {{else}}
+        <div class="dates">
+          <time datetime="{{.Published}}"><b>Published</b> {{.Published}}</time>
+        </div>
+      {{end}}
+    </header>
 
     {{.Body}}
   </main>

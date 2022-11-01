@@ -78,6 +78,10 @@ body, main, div, h1, h2, h3, h4, h5, h6, p, ol, ul, code {
   padding: 0;
 }
 
+ul {
+   list-style-position: inside;
+}
+
 h1, h2, h3, h4, h5, h6, p {
   font-weight: normal;
   line-height: 1.4;
@@ -135,6 +139,18 @@ img {
   height: auto;
 }
 
+header.entry {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.entry a {
+  font-size: 2.5rem;
+  color: var(--secondary-text-color);
+  text-decoration: none;
+}
+
 .dates {
   color: var(--secondary-text-color);
   margin: 3rem 0 1rem 0;
@@ -146,4 +162,22 @@ time {
   display: block;
   margin-bottom: .25rem;
   font-size: .75rem;
+}
+
+.index {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    font-size: 2rem;
+}
+.index > ul {
+   list-style-type: none;
+}
+.index > ul > li > a {
+    text-decoration: none;
+    transition-duration: .5s;
+    text-transform: capitalize;
+}
+.index > ul > li > a:hover {
+    color: var(--main-text-color);
 }

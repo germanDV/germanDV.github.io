@@ -1,4 +1,4 @@
-
+{{define "index"}}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -11,17 +11,14 @@
   <main>
       <div class="index">
         <ul>
-            
+            {{range $entry := .}}
                 <li>
-                    <a href="/blog/first-post.html">first post &rarr;</a>
+                    <a href="/blog/{{$entry.Link}}">{{$entry.Title}} &rarr;</a>
                 </li>
-             
-                <li>
-                    <a href="/blog/testing.html">testing &rarr;</a>
-                </li>
-             
+             {{end}}
         </ul>
       </div>
   </main>
   <script>hljs.highlightAll();</script>
 </body>
+{{end}}

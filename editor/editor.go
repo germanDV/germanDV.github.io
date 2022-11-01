@@ -84,6 +84,47 @@ func parseMd(filename string) (map[string]string, []byte, error) {
 	return frontMatter, body, nil
 }
 
+type PageLink struct {
+	Link  string
+	Title string
+}
+
+// generateIndex (re)creates the index.html page listing all published entries.
+func generateIndex() error {
+	files, err := os.ReadDir("pages")
+	if err != nil {
+		return err
+	}
+
+	links := []PageLink{}
+
+	for _, file := range files {
+		name := file.Name()
+		if !file.IsDir() && strings.HasSuffix(name, ".html") && name != "index.html" {
+			title := strings.ReplaceAll(strings.TrimSuffix(name, ".html"), "-", " ")
+			links = append(links, PageLink{Link: name, Title: title})
+		}
+	}
+
+	indexWriter, err := os.Create(filepath.Join("pages", "index.html"))
+	if err != nil {
+		return err
+	}
+	defer indexWriter.Close()
+
+	tmpl, err := template.ParseFiles(filepath.Join("templates", "index.html"))
+	if err != nil {
+		return err
+	}
+
+	err = tmpl.ExecuteTemplate(indexWriter, "index", links)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // Publish reads the .md file from entries/, converts it to .html and saves it in pages/.
 // It also adds a link to the newly published entry to the index.
 func Publish(filename string) error {
@@ -117,7 +158,10 @@ func Publish(filename string) error {
 		return err
 	}
 
-	// TODO: add link to index
+	err = generateIndex()
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
