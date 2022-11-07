@@ -1,0 +1,23 @@
+{{define "feed"}}
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0">
+    <channel>
+        <title>{{.Title}}</title>
+        <link>{{.Link}}</link>
+        <description>{{.Description}}</description>
+        <language>{{.Lang}}</language>
+        <lastBuildDate>{{.LastBuild}}</lastBuildDate>
+
+        {{range $item := .Items}}
+            <item>
+                <pubDate>{{$item.Created}}</pubDate>
+                <link>{{$item.Link}}</link>
+                <guid>{{$item.Link}}</guid>
+                <title>{{$item.Title}}</title>
+                <description>{{$item.Description}}</description>
+            </item>
+        {{end}}
+
+    </channel>
+</rss>
+{{end}}

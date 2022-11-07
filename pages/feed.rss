@@ -1,0 +1,30 @@
+
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0">
+    <channel>
+        <title>germandv</title>
+        <link>https://germandv.xyz</link>
+        <description>Programming things</description>
+        <language>en-us</language>
+        <lastBuildDate>2022-11-07T19:30:25-03:00</lastBuildDate>
+
+        
+            <item>
+                <pubDate>October 18, 2022</pubDate>
+                <link>https://germandv.xyz/blog/first-post.html</link>
+                <guid>https://germandv.xyz/blog/first-post.html</guid>
+                <title>First Post</title>
+                <description>This is a summary of the first post.</description>
+            </item>
+        
+            <item>
+                <pubDate>October 30, 2022</pubDate>
+                <link>https://germandv.xyz/blog/testing.html</link>
+                <guid>https://germandv.xyz/blog/testing.html</guid>
+                <title>Testing</title>
+                <description>This is a summary of the testing entry.</description>
+            </item>
+        
+
+    </channel>
+</rss>

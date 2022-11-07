@@ -2,6 +2,7 @@
 title: first-post
 published: 2022-10-18
 revision: 2022-10-24
+excerpt: This is a summary of the first post.
 ---
 
 # This is the title

@@ -7,21 +7,22 @@ import (
 	"strings"
 
 	"germandv.xyz/internal/editor"
+	"germandv.xyz/internal/feed"
 	"germandv.xyz/internal/server"
 )
 
 // TODO:
-//    - Embed all assets so binary is self-contained
 //    - Gzip http responses
-//    - Add RSS feed
 //    - Add Favicon
-//    - Add SQLite to count views
+//    - Makefile
+//    - Embed all assets so binary is self-contained
 
 func main() {
 	startServer := flag.Bool("serve", false, "Start web server")
 	entryToPublish := flag.String("publish", "", "Entry to be published")
 	all := flag.Bool("all", false, "Publish all entries")
 	entryToCreate := flag.String("draft", "", "Entry to be created as a draft")
+	rss := flag.Bool("feed", false, "Generate RSS feed")
 	flag.Parse()
 	if *startServer {
 		serve()
@@ -31,6 +32,8 @@ func main() {
 		publish(*entryToPublish)
 	} else if *entryToCreate != "" {
 		create(*entryToCreate)
+	} else if *rss {
+		generateFeed()
 	} else {
 		fmt.Println("Unknown operation. Run -h for help.")
 	}
@@ -89,4 +92,14 @@ func publishAll() {
 	}
 
 	fmt.Println("All entries published!")
+}
+
+func generateFeed() {
+	err := feed.Generate()
+	if err != nil {
+		fmt.Printf("Error generating rss feed")
+		fmt.Println(err)
+		os.Exit(1)
+	}
+	fmt.Println("RSS feed generated!")
 }

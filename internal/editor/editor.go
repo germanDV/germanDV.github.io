@@ -60,7 +60,7 @@ func readBody(scanner *bufio.Scanner) ([]byte, error) {
 	return body, nil
 }
 
-func parseMd(filename string) (map[string]string, []byte, error) {
+func ParseMd(filename string) (map[string]string, []byte, error) {
 	fp := filepath.Join("entries", filename)
 
 	f, err := os.Open(fp)
@@ -130,7 +130,7 @@ func GenerateIndex() error {
 // Publish reads the .md file from entries/, converts it to .html and saves it in pages/.
 // It also adds a link to the newly published entry to the index.
 func Publish(filename string) error {
-	frontMatter, body, err := parseMd(filename)
+	frontMatter, body, err := ParseMd(filename)
 	if err != nil {
 		return err
 	}
