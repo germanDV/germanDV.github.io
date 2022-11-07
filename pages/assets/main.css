@@ -190,19 +190,41 @@ footer {
 
 footer > nav {
     height: 100px;
-    display: grid;
-    column-gap: 128px;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    display: flex;
     align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+}
+footer > nav > div {
+    flex-grow: 1;
 }
 
-footer > nav > div {
+footer > nav > div:last-child {
+    flex-grow: 1;
     display: flex;
-    justify-content: space-evenly;
+    justify-content: right;
 }
 
 footer > nav > div > img {
    border: 2px solid var(--accent-bg-color); 
    border-radius: 8px;
    cursor: pointer;
+   margin: 0 12px;
 }
+
+footer > nav > div > a {
+   margin: 0 12px;
+}
+
+@media only screen and (max-width: 750px) {
+    footer > nav {
+        flex-direction: column;
+    }
+    footer > nav > div > img {
+        width: 75px;
+    }
+    footer > nav > div:last-child {
+        justify-content: center;
+    }
+}
+
