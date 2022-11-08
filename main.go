@@ -12,7 +12,6 @@ import (
 )
 
 // TODO:
-//    - Add Favicon
 //    - Makefile
 //    - Embed all assets so binary is self-contained
 
