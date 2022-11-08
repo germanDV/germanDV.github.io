@@ -48,7 +48,7 @@ func (s *Server) Listen() {
 func (s *Server) registerStaticHandler() {
 	fs := http.FileServer(http.Dir("./pages"))
 	fsWithTimeout := http.TimeoutHandler(fs, 5*time.Second, "Timeout\n")
-	s.mux.Handle("/blog/", http.StripPrefix("/blog/", logger(fsWithTimeout)))
+	s.mux.Handle("/blog/", http.StripPrefix("/blog/", logger(gzipper(fsWithTimeout))))
 }
 
 func (s *Server) registerIndexHandler() {

@@ -12,7 +12,6 @@ import (
 )
 
 // TODO:
-//    - Gzip http responses
 //    - Add Favicon
 //    - Makefile
 //    - Embed all assets so binary is self-contained
