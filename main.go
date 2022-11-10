@@ -11,9 +11,6 @@ import (
 	"germandv.xyz/internal/server"
 )
 
-// TODO:
-//    - Embed all assets so binary is self-contained
-
 func main() {
 	startServer := flag.Bool("serve", false, "Start web server")
 	entryToPublish := flag.String("publish", "", "Entry to be published")
