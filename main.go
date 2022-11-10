@@ -12,7 +12,6 @@ import (
 )
 
 // TODO:
-//    - Makefile
 //    - Embed all assets so binary is self-contained
 
 func main() {

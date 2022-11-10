@@ -3,7 +3,7 @@ testdata_dir = "testdata"
 tmp_dir = "tmp"
 
 [build]
-  bin = "./tmp/main"
+  bin = "./tmp/main -serve"
   cmd = "go build -o ./tmp/main ."
   delay = 1000
   exclude_dir = ["assets", "tmp", "vendor", "testdata", "pages", "entries"]
@@ -33,4 +33,4 @@ tmp_dir = "tmp"
   clean_on_exit = false
 
 [screen]
-  clear_on_rebuild = false
+  clear_on_rebuild = true
