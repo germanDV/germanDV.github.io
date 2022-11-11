@@ -22,7 +22,7 @@ func New(port int) *Server {
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,
 		IdleTimeout:  60 * time.Second,
-		Handler:      mux,
+		Handler:      dontPanic(logger(mux)),
 	}
 
 	return &Server{
@@ -48,26 +48,27 @@ func (s *Server) Listen() {
 func (s *Server) registerStaticHandler() {
 	fs := http.FileServer(http.Dir("./pages"))
 	fsWithTimeout := http.TimeoutHandler(fs, 5*time.Second, "Timeout\n")
-	s.mux.Handle("/blog/", http.StripPrefix("/blog/", logger(gzipper(fsWithTimeout))))
+	s.mux.Handle("/blog/", http.StripPrefix("/blog/", gzipper(fsWithTimeout)))
 }
 
 func (s *Server) registerIndexHandler() {
 	handler := func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, filepath.Join("pages", "index.html"))
 	}
-	s.mux.Handle("/", logger(http.HandlerFunc(handler)))
+	s.mux.Handle("/", http.HandlerFunc(handler))
 }
 
 func (s *Server) registerHealthCheckHandler() {
 	handler := func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
+		// w.WriteHeader(http.StatusOK)
+		panic("wtf")
 	}
-	s.mux.Handle("/health_check", logger(http.HandlerFunc(handler)))
+	s.mux.Handle("/health_check", http.HandlerFunc(handler))
 }
 
 func (s *Server) registerAnalyticsHandler() {
 	handler := func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("Top secret data\n"))
 	}
-	s.mux.Handle("/analytics", logger(basicAuth(http.HandlerFunc(handler))))
+	s.mux.Handle("/analytics", basicAuth(http.HandlerFunc(handler)))
 }
