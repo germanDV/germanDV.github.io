@@ -13,14 +13,13 @@ import (
 
 func main() {
 	startServer := flag.Bool("serve", false, "Start web server")
-	entryToPublish := flag.String("publish", "", "Entry to be published")
-	all := flag.Bool("all", false, "Publish all entries")
+	entryToPublish := flag.String("publish", "", "Entry to be published (use 'all' to publish everything)")
 	entryToCreate := flag.String("draft", "", "Entry to be created as a draft")
 	rss := flag.Bool("feed", false, "Generate RSS feed")
 	flag.Parse()
 	if *startServer {
 		serve()
-	} else if *all {
+	} else if *entryToPublish == "all" {
 		publishAll()
 	} else if *entryToPublish != "" {
 		publish(*entryToPublish)
