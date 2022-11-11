@@ -15,9 +15,9 @@
       <div class="index">
         <h1>Programming Things</h1>
         <ul>
-            {{range $entry := .}}
+            {{range .}}
                 <li>
-                    <a href="/blog/{{$entry.Link}}">{{$entry.Title}} &rarr;</a>
+                    <a href="/blog/{{.Link}}">{{.Title}} &rarr;</a>
                 </li>
              {{end}}
         </ul>
