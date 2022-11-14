@@ -12,7 +12,8 @@ const (
 	outputDateFormat = "January 2, 2006"
 )
 
-type Entry struct {
+type HtmlEntry struct {
+	Filename  string
 	Title     string
 	Published string
 	Revision  string
@@ -20,9 +21,17 @@ type Entry struct {
 	Body      template.HTML
 }
 
-func New(title string) *Entry {
+type MdEntry struct {
+	Title     string
+	Published string
+	Revision  string
+	Excerpt   string
+}
+
+// NewMdEntry creates a new Markdown entry using the current date.
+func NewMdEntry(title string) *MdEntry {
 	date := time.Now().Format(inputDateFormat)
-	return &Entry{
+	return &MdEntry{
 		Title:     title,
 		Excerpt:   "",
 		Published: date,
@@ -30,8 +39,10 @@ func New(title string) *Entry {
 	}
 }
 
-func NewFromFrontMatter(fm map[string]string) (*Entry, error) {
-	e := &Entry{}
+// NewHtmlEntry creates a new HTML entry taking a front matter as input.
+// Title is capitalized and "-" replaced with spaces.
+func NewHtmlEntry(fm map[string]string) (*HtmlEntry, error) {
+	e := &HtmlEntry{}
 
 	published, ok := fm["published"]
 	if !ok {
@@ -57,7 +68,8 @@ func NewFromFrontMatter(fm map[string]string) (*Entry, error) {
 	if !ok {
 		return nil, errors.New("Missing title in front matter")
 	}
-	e.Title = title
+	e.Filename = title
+	e.Title = parseTitle(title)
 
 	excerpt, ok := fm["excerpt"]
 	if !ok {
@@ -68,7 +80,7 @@ func NewFromFrontMatter(fm map[string]string) (*Entry, error) {
 	return e, nil
 }
 
-func (e *Entry) formatDate(dateStr string) (string, error) {
+func (e *HtmlEntry) formatDate(dateStr string) (string, error) {
 	parsed, err := time.Parse(inputDateFormat, dateStr)
 	if err != nil {
 		return "", err
@@ -76,9 +88,9 @@ func (e *Entry) formatDate(dateStr string) (string, error) {
 	return parsed.Format(outputDateFormat), nil
 }
 
-func (e *Entry) GetTitle() string {
+func parseTitle(title string) string {
 	capitalized := []string{}
-	for _, w := range strings.Split(e.Title, "-") {
+	for _, w := range strings.Split(title, "-") {
 		capitalized = append(capitalized, strings.ToUpper(string(w[0]))+string(w[1:]))
 	}
 	return strings.Join(capitalized, " ")

@@ -51,13 +51,13 @@ func Generate() error {
 				return err
 			}
 
-			art, err := entry.NewFromFrontMatter(frontMatter)
+			art, err := entry.NewHtmlEntry(frontMatter)
 			if err != nil {
 				return err
 			}
 
 			feed.Items = append(feed.Items, Item{
-				Title:       art.GetTitle(),
+				Title:       art.Title,
 				Link:        getLink(name),
 				Description: art.Excerpt,
 				Created:     art.Published,

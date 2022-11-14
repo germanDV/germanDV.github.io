@@ -135,14 +135,14 @@ func Publish(filename string) error {
 		return err
 	}
 
-	entry, err := entry.NewFromFrontMatter(frontMatter)
+	entry, err := entry.NewHtmlEntry(frontMatter)
 	if err != nil {
 		return err
 	}
 
 	entry.Body = template.HTML(blackfriday.Run(body))
 
-	dst := fmt.Sprintf("%s.html", entry.Title)
+	dst := fmt.Sprintf("%s.html", entry.Filename)
 	f, err := os.Create(filepath.Join("pages", dst))
 	if err != nil {
 		return err
@@ -199,7 +199,7 @@ func Draft(title string) error {
 		return err
 	}
 
-	err = tpl.Execute(f, entry.New(title))
+	err = tpl.Execute(f, entry.NewMdEntry(title))
 	if err != nil {
 		return err
 	}
