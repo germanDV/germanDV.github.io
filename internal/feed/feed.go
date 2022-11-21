@@ -28,7 +28,7 @@ type Feed struct {
 }
 
 // Generate creates a `feed.rss` file with all entries.
-func Generate() error {
+func Generate(src, dst string) error {
 	feed := Feed{
 		Title:       "germandv",
 		Link:        "https://germandv.xyz",
@@ -38,7 +38,7 @@ func Generate() error {
 		Items:       []Item{},
 	}
 
-	files, err := os.ReadDir("entries")
+	files, err := os.ReadDir(src)
 	if err != nil {
 		return err
 	}
@@ -46,7 +46,7 @@ func Generate() error {
 	for _, file := range files {
 		name := file.Name()
 		if !file.IsDir() && strings.HasSuffix(name, ".md") {
-			frontMatter, _, err := editor.ParseMd(name)
+			frontMatter, _, err := editor.ParseMd(filepath.Join(src, name))
 			if err != nil {
 				return err
 			}
@@ -70,7 +70,7 @@ func Generate() error {
 		return err
 	}
 
-	f, err := os.Create(filepath.Join("pages", "feed.rss"))
+	f, err := os.Create(filepath.Join(dst, "feed.rss"))
 	if err != nil {
 		return err
 	}

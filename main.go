@@ -11,6 +11,11 @@ import (
 	"germandv.xyz/internal/server"
 )
 
+const (
+	src = "entries"
+	dst = "pages"
+)
+
 func main() {
 	startServer := flag.Bool("serve", false, "Start web server")
 	entryToPublish := flag.String("publish", "", "Entry to be published (use 'all' to publish everything)")
@@ -38,12 +43,7 @@ func serve() {
 }
 
 func create(title string) {
-	err := editor.Draft(title)
-	if err != nil {
-		fmt.Printf("Error creating draft entry %q\n", title)
-		fmt.Println(err)
-		os.Exit(1)
-	}
+	must(editor.Draft(title, src), fmt.Sprintf("Error creating draft entry %q\n", title))
 	fmt.Printf("%q created!\n", title+".md")
 }
 
@@ -51,48 +51,26 @@ func publish(title string) {
 	if !strings.HasSuffix(title, ".md") {
 		title = title + ".md"
 	}
-
-	err := editor.Publish(title)
-	if err != nil {
-		fmt.Printf("Error publishing entry %q\n", title)
-		fmt.Println(err)
-		os.Exit(1)
-	}
-
-	err = editor.GenerateIndex()
-	if err != nil {
-		fmt.Println("Error generating index.html")
-		fmt.Println(err)
-		os.Exit(1)
-	}
-
+	must(editor.Publish(title, src, dst), fmt.Sprintf("Error publishing entry %q\n", title))
+	must(editor.GenerateIndex(dst), "Error generating index.html")
 	fmt.Printf("%q published!\n", title)
 }
 
 func publishAll() {
-	err := editor.PublishAll()
-	if err != nil {
-		fmt.Printf("Error publishing all entries")
-		fmt.Println(err)
-		os.Exit(1)
-	}
-
-	err = editor.GenerateIndex()
-	if err != nil {
-		fmt.Printf("Error generating index.html")
-		fmt.Println(err)
-		os.Exit(1)
-	}
-
+	must(editor.PublishAll(src, dst), "Error publishing all entries")
+	must(editor.GenerateIndex(dst), "Error generating index.html")
 	fmt.Println("All entries published!")
 }
 
 func generateFeed() {
-	err := feed.Generate()
+	must(feed.Generate(src, dst), "Error generating rss feed")
+	fmt.Println("RSS feed generated!")
+}
+
+func must(err error, msg string) {
 	if err != nil {
-		fmt.Printf("Error generating rss feed")
+		fmt.Println(msg)
 		fmt.Println(err)
 		os.Exit(1)
 	}
-	fmt.Println("RSS feed generated!")
 }

@@ -6,7 +6,7 @@
         <link>https://germandv.xyz</link>
         <description>Programming things</description>
         <language>en-us</language>
-        <lastBuildDate>2022-11-14T20:42:52-03:00</lastBuildDate>
+        <lastBuildDate>2022-11-21T17:44:04-03:00</lastBuildDate>
 
         
             <item>
@@ -15,14 +15,6 @@
                 <guid>https://germandv.xyz/blog/first-post.html</guid>
                 <title>First Post</title>
                 <description>This is a summary of the first post.</description>
-            </item>
-        
-            <item>
-                <pubDate>November 14, 2022</pubDate>
-                <link>https://germandv.xyz/blog/one-after-refactor.html</link>
-                <guid>https://germandv.xyz/blog/one-after-refactor.html</guid>
-                <title>One After Refactor</title>
-                <description>Lorem ipsum dolor.</description>
             </item>
         
             <item>
