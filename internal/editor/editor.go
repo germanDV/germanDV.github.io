@@ -128,7 +128,7 @@ func GenerateIndex(dst string) error {
 // Publish reads the .md file from `src`, converts it to .html and saves it in `dst`.
 // It also adds a link to the newly published entry to the index.
 func Publish(filename, src, dst string) error {
-	frontMatter, body, err := ParseMd(filepath.Join(src, filename))
+	frontMatter, body, err := ParseMd(filepath.Join(src, "draft", filename))
 	if err != nil {
 		return err
 	}
@@ -159,12 +159,20 @@ func Publish(filename, src, dst string) error {
 		return err
 	}
 
+	err = os.Rename(
+		filepath.Join(src, "draft", filename),
+		filepath.Join(src, "published", filename),
+	)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
 // PublishAll reads all .md files from `src`, converts them to .html and saves them in `dst`.
 func PublishAll(src, dst string) error {
-	files, err := os.ReadDir(src)
+	files, err := os.ReadDir(filepath.Join(src, "draft"))
 	if err != nil {
 		return err
 	}
@@ -187,7 +195,7 @@ func PublishAll(src, dst string) error {
 func Draft(title, src string) error {
 	filename := title + ".md"
 
-	f, err := os.Create(filepath.Join(src, filename))
+	f, err := os.Create(filepath.Join(src, "draft", filename))
 	if err != nil {
 		return err
 	}
