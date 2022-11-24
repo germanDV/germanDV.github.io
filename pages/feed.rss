@@ -6,8 +6,24 @@
         <link>https://germandv.xyz</link>
         <description>Programming things</description>
         <language>en-us</language>
-        <lastBuildDate>2022-11-24T17:33:22-03:00</lastBuildDate>
+        <lastBuildDate>2022-11-24T21:00:57-03:00</lastBuildDate>
 
+        
+            <item>
+                <pubDate>October 18, 2022</pubDate>
+                <link>https://germandv.xyz/blog/first-post.html</link>
+                <guid>https://germandv.xyz/blog/first-post.html</guid>
+                <title>First Post</title>
+                <description>This is a summary of the first post.</description>
+            </item>
+        
+            <item>
+                <pubDate>November 24, 2022</pubDate>
+                <link>https://germandv.xyz/blog/testing.html</link>
+                <guid>https://germandv.xyz/blog/testing.html</guid>
+                <title>Testing</title>
+                <description>just testing</description>
+            </item>
         
 
     </channel>

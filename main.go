@@ -8,26 +8,23 @@ import (
 
 	"germandv.xyz/internal/editor"
 	"germandv.xyz/internal/feed"
+	"germandv.xyz/internal/filer"
 	"germandv.xyz/internal/server"
-)
-
-const (
-	src = "entries"
-	dst = "pages"
 )
 
 func main() {
 	startServer := flag.Bool("serve", false, "Start web server")
-	entryToPublish := flag.String("publish", "", "Entry to be published (use 'all' to publish everything)")
+	publishEverything := flag.Bool("publish-all", false, "Publish all entries")
+	publishDraft := flag.Bool("publish", false, "Choose draft entry to publish")
 	entryToCreate := flag.String("draft", "", "Entry to be created as a draft")
 	rss := flag.Bool("feed", false, "Generate RSS feed")
 	flag.Parse()
 	if *startServer {
 		serve()
-	} else if *entryToPublish == "all" {
+	} else if *publishEverything {
 		publishAll()
-	} else if *entryToPublish != "" {
-		publish(*entryToPublish)
+	} else if *publishDraft {
+		publish()
 	} else if *entryToCreate != "" {
 		create(*entryToCreate)
 	} else if *rss {
@@ -43,27 +40,53 @@ func serve() {
 }
 
 func create(title string) {
-	must(editor.Draft(title, src), fmt.Sprintf("Error creating draft entry %q\n", title))
+	must(editor.Draft(title), fmt.Sprintf("Error creating draft entry %q\n", title))
 	fmt.Printf("%q created!\n", title+".md")
 }
 
-func publish(title string) {
-	if !strings.HasSuffix(title, ".md") {
-		title = title + ".md"
+func publish() {
+	// List draft entries
+	drafts, err := filer.ListDrafts()
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
 	}
-	must(editor.Publish(title, src, dst), fmt.Sprintf("Error publishing entry %q\n", title))
-	must(editor.GenerateIndex(dst), "Error generating index.html")
-	fmt.Printf("%q published!\n", title)
+
+	if len(drafts) == 0 {
+		fmt.Println("You have no draft entries to publish")
+		os.Exit(0)
+	}
+
+	fmt.Println("Select the number of the entry you wish to publish")
+	for id, name := range drafts {
+		parts := strings.Split(name, "/")
+		filename := parts[len(parts)-1]
+		fmt.Printf("[%d] %s\n", id, filename)
+	}
+
+	var answer uint
+	fmt.Scanf("%d", &answer)
+
+	entryToPublish, ok := drafts[answer]
+	if !ok {
+		fmt.Printf("No entry with ID %d\n", answer)
+		os.Exit(1)
+	}
+
+	// Publish
+	must(editor.Publish(entryToPublish), fmt.Sprintf("Error publishing entry %q\n", entryToPublish))
+	must(editor.GenerateIndex(), "Error generating index.html")
+	fmt.Printf("%q published!\n", entryToPublish)
 }
 
 func publishAll() {
-	must(editor.PublishAll(src, dst), "Error publishing all entries")
-	must(editor.GenerateIndex(dst), "Error generating index.html")
+	must(editor.PublishAll(), "Error publishing all entries")
+	must(editor.GenerateIndex(), "Error generating index.html")
 	fmt.Println("All entries published!")
 }
 
 func generateFeed() {
-	must(feed.Generate(src, dst), "Error generating rss feed")
+	must(feed.Generate(), "Error generating rss feed")
 	fmt.Println("RSS feed generated!")
 }
 

@@ -15,14 +15,14 @@ func TestGenerateReadsPagesAndGeneratesRSSFeedFile(t *testing.T) {
 		t.Errorf("Error changing directory: %s", err)
 	}
 
-	src := "testdata/entries"
-	dst := "testdata/pages"
-	err = Generate(src, dst)
+	os.Setenv("SRC", "testdata/entries")
+	os.Setenv("DST", "testdata/pages")
+	err = Generate()
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
 	}
 
-	readAndValidateFeed(t, dst)
+	readAndValidateFeed(t, "testdata/pages")
 }
 
 func readAndValidateFeed(t *testing.T, dir string) {

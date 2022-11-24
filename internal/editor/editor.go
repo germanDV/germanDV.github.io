@@ -3,13 +3,13 @@ package editor
 import (
 	"bufio"
 	"errors"
-	"fmt"
 	"html/template"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"germandv.xyz/internal/entry"
+	"germandv.xyz/internal/filer"
 	"github.com/russross/blackfriday/v2"
 )
 
@@ -88,8 +88,8 @@ type PageLink struct {
 }
 
 // GenerateIndex (re)creates the index.html page listing all published entries.
-func GenerateIndex(dst string) error {
-	files, err := os.ReadDir(dst)
+func GenerateIndex() error {
+	files, err := filer.ListPages()
 	if err != nil {
 		return err
 	}
@@ -97,14 +97,11 @@ func GenerateIndex(dst string) error {
 	links := []PageLink{}
 
 	for _, file := range files {
-		name := file.Name()
-		if !file.IsDir() && strings.HasSuffix(name, ".html") && name != "index.html" {
-			title := strings.ReplaceAll(strings.TrimSuffix(name, ".html"), "-", " ")
-			links = append(links, PageLink{Link: name, Title: title})
-		}
+		title := strings.ReplaceAll(strings.TrimSuffix(file, ".html"), "-", " ")
+		links = append(links, PageLink{Link: file, Title: title})
 	}
 
-	indexWriter, err := os.Create(filepath.Join(dst, "index.html"))
+	indexWriter, err := filer.CreateIndex()
 	if err != nil {
 		return err
 	}
@@ -127,8 +124,8 @@ func GenerateIndex(dst string) error {
 
 // Publish reads the .md file from `src`, converts it to .html and saves it in `dst`.
 // It also adds a link to the newly published entry to the index.
-func Publish(filename, src, dst string) error {
-	frontMatter, body, err := ParseMd(filepath.Join(src, "draft", filename))
+func Publish(entryfile string) error {
+	frontMatter, body, err := ParseMd(entryfile)
 	if err != nil {
 		return err
 	}
@@ -140,8 +137,7 @@ func Publish(filename, src, dst string) error {
 
 	entry.Body = template.HTML(blackfriday.Run(body))
 
-	dstFile := fmt.Sprintf("%s.html", entry.Filename)
-	f, err := os.Create(filepath.Join(dst, dstFile))
+	f, err := filer.CreatePage(entry.Filename)
 	if err != nil {
 		return err
 	}
@@ -159,10 +155,7 @@ func Publish(filename, src, dst string) error {
 		return err
 	}
 
-	err = os.Rename(
-		filepath.Join(src, "draft", filename),
-		filepath.Join(src, "published", filename),
-	)
+	err = filer.Publish(entryfile)
 	if err != nil {
 		return err
 	}
@@ -171,20 +164,17 @@ func Publish(filename, src, dst string) error {
 }
 
 // PublishAll reads all .md files from `src`, converts them to .html and saves them in `dst`.
-func PublishAll(src, dst string) error {
-	files, err := os.ReadDir(filepath.Join(src, "draft"))
+func PublishAll() error {
+	drafts, err := filer.ListDrafts()
 	if err != nil {
 		return err
 	}
 
 	// TODO: maybe do this in parallel with goroutines?
-	for _, file := range files {
-		name := file.Name()
-		if !file.IsDir() && strings.HasSuffix(name, ".md") {
-			err := Publish(name, src, dst)
-			if err != nil {
-				return err
-			}
+	for _, draft := range drafts {
+		err := Publish(draft)
+		if err != nil {
+			return err
 		}
 	}
 
@@ -192,10 +182,8 @@ func PublishAll(src, dst string) error {
 }
 
 // Draft creates a .md file in `src` and pre-populates the front matter.
-func Draft(title, src string) error {
-	filename := title + ".md"
-
-	f, err := os.Create(filepath.Join(src, "draft", filename))
+func Draft(title string) error {
+	f, err := filer.CreateDraft(title + ".md")
 	if err != nil {
 		return err
 	}

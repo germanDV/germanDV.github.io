@@ -1,8 +1,8 @@
 ---
 title: testing
-published: 2022-10-30
-revision: 2022-10-30
-excerpt: This is a summary of the testing entry.
+published: 2022-11-24
+revision: 2022-11-24
+excerpt: just testing
 ---
 
-# just testing this
+# Just Testing

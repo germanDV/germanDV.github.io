@@ -1,7 +1,6 @@
 package feed
 
 import (
-	"os"
 	"path/filepath"
 	"strings"
 	"text/template"
@@ -9,6 +8,7 @@ import (
 
 	"germandv.xyz/internal/editor"
 	"germandv.xyz/internal/entry"
+	"germandv.xyz/internal/filer"
 )
 
 type Item struct {
@@ -28,7 +28,7 @@ type Feed struct {
 }
 
 // Generate creates a `feed.rss` file with all entries.
-func Generate(src, dst string) error {
+func Generate() error {
 	feed := Feed{
 		Title:       "germandv",
 		Link:        "https://germandv.xyz",
@@ -38,31 +38,28 @@ func Generate(src, dst string) error {
 		Items:       []Item{},
 	}
 
-	files, err := os.ReadDir(src)
+	files, err := filer.ListPublished()
 	if err != nil {
 		return err
 	}
 
 	for _, file := range files {
-		name := file.Name()
-		if !file.IsDir() && strings.HasSuffix(name, ".md") {
-			frontMatter, _, err := editor.ParseMd(filepath.Join(src, name))
-			if err != nil {
-				return err
-			}
-
-			art, err := entry.NewHtmlEntry(frontMatter)
-			if err != nil {
-				return err
-			}
-
-			feed.Items = append(feed.Items, Item{
-				Title:       art.Title,
-				Link:        getLink(name),
-				Description: art.Excerpt,
-				Created:     art.Published,
-			})
+		frontMatter, _, err := editor.ParseMd(file)
+		if err != nil {
+			return err
 		}
+
+		art, err := entry.NewHtmlEntry(frontMatter)
+		if err != nil {
+			return err
+		}
+
+		feed.Items = append(feed.Items, Item{
+			Title:       art.Title,
+			Link:        getLink(file),
+			Description: art.Excerpt,
+			Created:     art.Published,
+		})
 	}
 
 	tmpl, err := template.ParseFiles(filepath.Join("templates", "feed.rss"))
@@ -70,7 +67,7 @@ func Generate(src, dst string) error {
 		return err
 	}
 
-	f, err := os.Create(filepath.Join(dst, "feed.rss"))
+	f, err := filer.CreateFeed()
 	if err != nil {
 		return err
 	}
@@ -83,8 +80,10 @@ func Generate(src, dst string) error {
 	return nil
 }
 
-func getLink(mdFile string) string {
+func getLink(mdFilepath string) string {
 	baseURL := "https://germandv.xyz/blog/"
+	parts := strings.Split(mdFilepath, "/")
+	mdFile := parts[len(parts)-1]
 	htmlFile := strings.TrimSuffix(mdFile, ".md") + ".html"
 	return baseURL + htmlFile
 }
