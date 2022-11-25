@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 
 	"germandv.xyz/internal/entry"
 	"germandv.xyz/internal/filer"
@@ -170,14 +171,16 @@ func PublishAll() error {
 		return err
 	}
 
-	// TODO: maybe do this in parallel with goroutines?
+	var wg sync.WaitGroup
 	for _, draft := range drafts {
-		err := Publish(draft)
-		if err != nil {
-			return err
-		}
+		wg.Add(1)
+		go func(waitgroup *sync.WaitGroup, draftname string) {
+			defer waitgroup.Done()
+			Publish(draftname)
+		}(&wg, draft)
 	}
 
+	wg.Wait()
 	return nil
 }
 
