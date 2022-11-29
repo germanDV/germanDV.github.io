@@ -60,15 +60,14 @@ func (s *Server) registerIndexHandler() {
 
 func (s *Server) registerHealthCheckHandler() {
 	handler := func(w http.ResponseWriter, r *http.Request) {
-		// w.WriteHeader(http.StatusOK)
-		panic("wtf")
+		w.WriteHeader(http.StatusOK)
 	}
 	s.mux.Handle("/health_check", http.HandlerFunc(handler))
 }
 
 func (s *Server) registerAnalyticsHandler() {
 	handler := func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("Top secret data\n"))
+		w.Write([]byte("WIP\n"))
 	}
 	s.mux.Handle("/analytics", basicAuth(http.HandlerFunc(handler)))
 }
