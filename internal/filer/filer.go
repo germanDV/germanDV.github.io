@@ -10,13 +10,11 @@ var src string
 var dst string
 
 func init() {
-	src = os.Getenv("SRC")
-	if src == "" {
+	if os.Getenv("ENV") == "testing" {
+		src = "testdata/entries"
+		dst = "testdata/pages"
+	} else {
 		src = "entries"
-	}
-
-	dst = os.Getenv("DST")
-	if dst == "" {
 		dst = "pages"
 	}
 }
