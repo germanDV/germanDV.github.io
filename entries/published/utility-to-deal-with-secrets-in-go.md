@@ -14,7 +14,7 @@ Or maybe you are printing some struct for debugging purposes and would like to s
 
 One simple way around this is to wrap secrets in a `Secret` _struct_ that prints an error message instead of the wrapped value; requiring you to explicitly _expose_ the underlying value whenever you wish to access it.
 
-Let's start by defining the `Secret` struct, it just takes the value it needs to wrap. The important part is that `value` is not exported (lowercased). If you create a _secret_ package inside your application, this will ensure that no one outside that package will be able to access the value with `.value`.
+Let's start by defining the `Secret` struct, it just takes the value it needs to wrap. The important part is that `value` is not exported (lowercase). If you create a _secret_ package inside your application, this will ensure that no one outside that package will be able to access the value with `.value`.
 
 ```go
 type Secret[T any] struct {
@@ -172,7 +172,7 @@ func (s Secret[T]) Expose() T {
 }
 ```
 
-And our `main.go`:
+In our `main.go`, we will use the secret inside of a struct:
 
 ```go
 package main
@@ -182,23 +182,31 @@ import (
     "fmt"
 )
 
-func main() {
-    pass := secret.New("secret_api_key")
+type User struct {
+    Email    string
+    Password secret.Secret[string]
+}
 
-    // All these will return `Secret value access denied, call `expose()` to read it.`
-    fmt.Printf("%d\n", pass)
-    fmt.Println(pass)
-    fmt.Printf("%#v\n", pass)
-    fmt.Println(fmt.Sprintf("%s", pass))
+func main() {
+    u := User{
+        Email:    "alice@wonder.land",
+        Password: secret.New("P4$$w0rd!"),
+    }
+
+    // None of these will reveal the password
+    fmt.Println(u)
+    fmt.Printf("%v\n", u)
+    fmt.Printf("%#v\n", u)
+    fmt.Println(u.Password)
+    fmt.Printf("%s\n", u.Password)
+    fmt.Printf("%#v\n", u.Password)
 
     // Cannot access unexported field.
-    // fmt.Println(pass.value)
+    // fmt.Println(u.Password.value)
 
     // This is the correct way of accessing the wrapped value.
-    fmt.Println(pass.Expose())
+    fmt.Println(u.Password.Expose())
 }
 ```
 
 In addition to preventing some accidental exposure of secrets, I like this approach because anyone reading the code will immediately understand that we are dealing with sensitive information.
-
-Hope you find it useful.

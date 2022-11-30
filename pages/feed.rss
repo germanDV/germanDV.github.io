@@ -6,8 +6,16 @@
         <link>https://germandv.xyz</link>
         <description>Programming things</description>
         <language>en-us</language>
-        <lastBuildDate>2022-11-29T20:40:12-03:00</lastBuildDate>
+        <lastBuildDate>2022-11-30T10:08:44-03:00</lastBuildDate>
 
+        
+            <item>
+                <pubDate>November 30, 2022</pubDate>
+                <link>https://germandv.xyz/blog/utility-to-deal-with-secrets-in-TS.html</link>
+                <guid>https://germandv.xyz/blog/utility-to-deal-with-secrets-in-TS.html</guid>
+                <title>Utility To Deal With Secrets In TS</title>
+                <description>If your code deals, at one point or another, with secrets in plain text, it might be a good idea to prevent accidental logging of such sensitive information.</description>
+            </item>
         
             <item>
                 <pubDate>November 29, 2022</pubDate>
