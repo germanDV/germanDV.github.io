@@ -26,7 +26,7 @@ audit:
 ## dev: run with hot-reloading
 .PHONY: dev
 dev:
-	air .
+	ENV=development air .
 
 ## build: build binary
 .PHONY: build

@@ -204,3 +204,27 @@ func Draft(title string) error {
 
 	return nil
 }
+
+// Preview reads a draft .md file and returns its HTML version,
+// without persisting anything to disk.
+func Preview(filename string) (*template.Template, *entry.HtmlEntry, error) {
+	frontMatter, body, err := ParseMd(filename)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	entry, err := entry.NewHtmlEntry(frontMatter)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	entry.Body = template.HTML(blackfriday.Run(body))
+	layout := filepath.Join("templates", "layout.html")
+	footer := filepath.Join("templates", "footer.html")
+	tmpl, err := template.ParseFiles(layout, footer)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return tmpl, entry, nil
+}
