@@ -60,7 +60,10 @@ func ListPages() ([]string, error) {
 
 	for _, file := range files {
 		name := file.Name()
-		if !file.IsDir() && strings.HasSuffix(name, ".html") && name != "index.html" {
+		if !file.IsDir() &&
+			strings.HasSuffix(name, ".html") &&
+			name != "index.html" &&
+			name != "about.html" {
 			pages = append(pages, name)
 		}
 	}
