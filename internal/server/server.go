@@ -42,6 +42,7 @@ func (s *Server) Listen() {
 	s.registerAnalyticsHandler()
 	s.registerStaticHandler()
 	s.registerIndexHandler()
+	s.registerRssHandler()
 
 	if os.Getenv("ENV") == "development" {
 		s.registerPreviewHandler()
@@ -65,6 +66,18 @@ func (s *Server) registerIndexHandler() {
 		http.ServeFile(w, r, filepath.Join("pages", "index.html"))
 	}
 	s.mux.Handle("/", http.HandlerFunc(handler))
+}
+
+func (s *Server) registerRssHandler() {
+	handler := func(w http.ResponseWriter, r *http.Request) {
+		feed, err := os.ReadFile(filepath.Join("pages", "feed.rss"))
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		w.Write(feed)
+	}
+	s.mux.Handle("/feed", http.HandlerFunc(handler))
 }
 
 func (s *Server) registerHealthCheckHandler() {
