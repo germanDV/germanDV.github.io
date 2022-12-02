@@ -1,0 +1,239 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="keywords" content="programming, development, go, rust, typescript, javascript, react, fullstack">
+  <meta name="description" content="I like using a Makefile in my Go projects. These are some tasks that I find useful in pretty much all of them.">
+  <title>germandv: A Makefile For Go Projects</title>
+  <link rel="shortcut icon" href="/blog/assets/favicon.ico" type="image/x-icon">
+  <link rel="stylesheet" href="/blog/assets/main.css">
+  <link rel="stylesheet" href="/blog/assets/github-dark.min.css">
+  <script src="/blog/assets/highlight.min.js"></script>
+</head>
+<body class="gruvbox">
+  <main>
+    <header class="entry">
+      <a href="/">&larr;</a>
+
+      
+        <div class="dates">
+          <time datetime="December 2, 2022"><b>Published</b> December 2, 2022</time>
+        </div>
+      
+    </header>
+
+    <h1>A Makefile For Go Projects</h1>
+
+    <div class="excerpt">
+      <p>I like using a Makefile in my Go projects. These are some tasks that I find useful in pretty much all of them.</p>
+    </div>
+
+    <p>Let&rsquo;s start with a simple task, create a <em>Makefile</em> at the root of your project with the contents:</p>
+
+<pre><code class="language-makefile">dev:
+  air .
+</code></pre>
+
+<p>You can now run <code>make dev</code> and it will execute the command <code>air .</code>.</p>
+
+<p><a href="https://github.com/cosmtrek/air">Air</a> is a tool I use for hot-reloading during development, but of course you can run any other command you wish.</p>
+
+<p>Makefiles are supposed to deal with files, in our case, we are using it as a task runner, so, we will add the <code>.PHONY</code> target to be explicit about that fact:</p>
+
+<pre><code class="language-makefile">.PHONY: dev
+dev:
+  @echo &quot;Starting web server in development mode&quot;
+  ENV=development air .
+</code></pre>
+
+<p>The <code>@</code> at the beginning of the <em>echo</em> command means &ldquo;do not print this line&rdquo;, which would be redundant for <em>echo</em>.</p>
+
+<p>I have added an environment variable <code>ENV</code>, it&rsquo;s important that you do this in the same line as the command that the variable is supposed to affect (<code>air</code> in this case). If you set the environment variable in one line and run the command in another one, it won&rsquo;t work.</p>
+
+<p>This won&rsquo;t work as expected:</p>
+
+<pre><code class="language-makefile">.PHONY: dev
+dev:
+  @echo &quot;Starting web server in development mode&quot;
+  export ENV=development
+  air .
+</code></pre>
+
+<p>If you run <code>make</code> with no arguments, it will run the first task in the Makefile. So, I think it&rsquo;s a good idea to put a <em>help</em> task as the first one, which will print a small description of every task available:</p>
+
+<pre><code class="language-makefile">## help: print this help message.
+.PHONY: help
+help:
+  @echo 'Usage:'
+  @sed -n 's/^##//p' ${MAKEFILE_LIST} | column -t -s ':' | sed -e 's/^/ /'
+</code></pre>
+
+<p>For any task that you wish to show in the help message, you just need to write a comment with the format <code>## &lt;task&gt;: &lt;message&gt;</code>.</p>
+
+<p>Let&rsquo;s add a help message to our <em>dev</em> task:</p>
+
+<pre><code class="language-makefile">## dev: run with hot-reloading.
+.PHONY: dev
+dev:
+  @echo &quot;Starting web server in development mode&quot;
+  export ENV=development
+  air .
+</code></pre>
+
+<p>If you now run <code>make</code> or <code>make help</code>, you will get:</p>
+
+<pre><code>Usage:
+  help print this help message.
+  dev  run with hot-reloading.
+</code></pre>
+
+<p>Usually, in my Go projects I would use tools that are not part of the application itself, they are not listed in <em>go.mod</em> so to say. For example, here we are using <em>air</em> for hot-reloading, and if I were to work with a database, I would use something like <a href="https://github.com/golang-migrate/migrate">migrate</a> to handle database migrations.</p>
+
+<p>I like having one task that consolidates these dependencies, so that it&rsquo;s clear for developers joining the project what tools are used, and they can install them with a single command:</p>
+
+<pre><code class="language-makefile">## deps: install external dependencies not used in source code
+.PHONY: deps
+deps:
+  @echo 'Installing `air` for hot-reloading'
+  go install github.com/cosmtrek/air@latest
+</code></pre>
+
+<p>Since this is going to install things on users&rsquo; systems, I think it would be nice to ask for confirmation before proceeding. We can have a little <em>confirm</em> helper that we can attach to any task we wish:</p>
+
+<pre><code class="language-makefile">.PHONY: confirm
+confirm:
+  @echo -n 'Are you sure? [y/N]' &amp;&amp; read ans &amp;&amp; [ $${ans:-N} = y ]
+</code></pre>
+
+<p>Notice the lack of help message, that&rsquo;s because this is a task for internal use only.</p>
+
+<p>To ask for confirmation, we simply need to add the <em>confirm</em> task. Let&rsquo;s add it to <em>deps</em>:</p>
+
+<pre><code class="language-makefile">## deps: install external dependencies not used in source code
+.PHONY: deps
+deps: confirm
+  @echo 'Installing `air` for hot-reloading'
+  go install github.com/cosmtrek/air@latest
+</code></pre>
+
+<p>If you run <code>make deps</code>, you will get:</p>
+
+<pre><code>Are you sure? [y/N]
+</code></pre>
+
+<p>This wouldn&rsquo;t be complete without adding a task for tests. In addition to tests, we will also tidy and verify dependencies, fmt and vet the code:</p>
+
+<pre><code class="language-makefile">## audit: tidy dependencies, format, vet and test.
+.PHONY: audit
+audit:
+  @echo 'Tidying and verifying module dependencies...'
+  go mod tidy
+  go mod verify
+  @echo 'Formatting code...'
+  go fmt ./...
+  @echo 'Vetting code...'
+  go vet ./...
+  @echo 'Running tests...'
+  ENV=testing go test -race -vet=off ./...
+</code></pre>
+
+<p>I would normally have one or more build tasks, maybe one to build for the current arch and another one to build for all targets. If I&rsquo;m working with a database, I would also have tasks to deal with creating, applying and reverting migrations. But these are more project-specific so I won&rsquo;t include them here.</p>
+
+<p>To sum up, this is the entire Makefile:</p>
+
+<pre><code class="language-makefile">## help: print this help message.
+.PHONY: help
+help:
+  @echo 'usage:'
+  @sed -n 's/^##//p' ${MAKEFILE_LIST} | column -t -s ':' | sed -e 's/^/ /'
+
+.PHONY: confirm
+confirm:
+  @echo -n 'Are you sure? [y/N]' &amp;&amp; read ans &amp;&amp; [ $${ans:-N} = y ]
+
+## audit: tidy dependencies, format, vet and test.
+.PHONY: audit
+audit:
+  @echo 'Tidying and verifying module dependencies...'
+  go mod tidy
+  go mod verify
+  @echo 'Formatting code...'
+  go fmt ./...
+  @echo 'Vetting code...'
+  go vet ./...
+  @echo 'Running tests...'
+  ENV=testing go test -race -vet=off ./...
+
+## dev: run with hot-reloading.
+.PHONY: dev
+dev:
+  ENV=development air .
+
+## deps: install external dependencies not used in source code
+.PHONY: deps
+deps: confirm
+  @echo 'Installing `air` for hot-reloading'
+  go install github.com/cosmtrek/air@latest
+</code></pre>
+
+<p>Some of this I have stolen from two great books by Alex Edwards:</p>
+
+<ul>
+<li><a href="https://lets-go.alexedwards.net/">Let&rsquo;s Go</a></li>
+<li><a href="https://lets-go-further.alexedwards.net/">Let&rsquo;s Go Further</a></li>
+</ul>
+
+  </main>
+  
+  <footer>
+      <nav>
+          <div>
+              <a href="/">HOME</a>
+              <a href="/blog/about.html">ABOUT</a>
+              <a href="/blog/feed.rss">RSS</a>
+          </div>
+          <div>
+              <img
+                src="/blog/assets/gruvbox.png"
+                alt="Gruvbox colorscheme"
+                title="Gruvbox"
+                width="125px"
+                onclick="changeTheme('gruvbox');"
+              >
+              <img
+                src="/blog/assets/nord.png"
+                alt="Nord colorscheme"
+                title="Nord"
+                width="125px"
+                onclick="changeTheme('nord');"
+              >
+              <img
+                src="/blog/assets/light.png"
+                alt="Light colorscheme"
+                title="Light"
+                width="125px"
+                onclick="changeTheme('onelight');"
+              >
+          </div>
+      </nav>
+  </footer>
+  <script>
+    function setTheme(name) {
+        window.document.querySelector('body').className = name;
+    }
+    function changeTheme(name) {
+        window.localStorage.setItem('colorscheme', name);
+        setTheme(name);
+    }
+    window.onload = () => {
+        const stored = window.localStorage.getItem('colorscheme');
+        const theme = ['gruvbox', 'nord', 'onelight'].includes(stored) ? stored : 'gruvbox';
+        setTheme(theme);
+    };
+  </script>
+
+  <script>hljs.highlightAll();</script>
+</body>
+</html>

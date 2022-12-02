@@ -80,6 +80,8 @@ body, main, div, h1, h2, h3, h4, h5, h6, p, ol, ul, code {
 
 ul {
    list-style-position: inside;
+   list-style-type: square;
+   margin-left: 2rem;
 }
 
 h1, h2, h3, h4, h5, h6, p {
@@ -173,13 +175,14 @@ time {
 }
 
 .index {
-    min-height: calc(100vh - 100px - 2px);
+    min-height: calc(100vh - 100px - 2px - 48px);
     display: flex;
     flex-direction: column;
     justify-content: center;
 }
 .index > ul {
    list-style-type: none;
+   margin-left: 0;
 }
 .index > ul > li {
   margin-bottom: 14px;
@@ -196,6 +199,7 @@ time {
 
 footer {
    border-top: 2px solid var(--accent-bg-color); 
+   margin-top: 48px;
 }
 
 footer > nav {

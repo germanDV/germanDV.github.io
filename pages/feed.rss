@@ -6,8 +6,16 @@
         <link>https://germandv.xyz</link>
         <description>Programming things</description>
         <language>en-us</language>
-        <lastBuildDate>2022-11-30T10:08:44-03:00</lastBuildDate>
+        <lastBuildDate>2022-12-02T10:13:21-03:00</lastBuildDate>
 
+        
+            <item>
+                <pubDate>December 2, 2022</pubDate>
+                <link>https://germandv.xyz/blog/a-makefile-for-go-projects.html</link>
+                <guid>https://germandv.xyz/blog/a-makefile-for-go-projects.html</guid>
+                <title>A Makefile For Go Projects</title>
+                <description>I like using a Makefile in my Go projects. These are some tasks that I find useful in pretty much all of them.</description>
+            </item>
         
             <item>
                 <pubDate>November 30, 2022</pubDate>
