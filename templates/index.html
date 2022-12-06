@@ -18,6 +18,8 @@
             {{range .}}
                 <li>
                     <a href="/blog/{{.Link}}">{{.Title}} &rarr;</a>
+                    <br />
+                    <span>{{.DateDisplay}}</span>
                 </li>
              {{end}}
         </ul>

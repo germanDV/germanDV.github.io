@@ -8,8 +8,8 @@ import (
 )
 
 const (
-	inputDateFormat  = "2006-01-02"
-	outputDateFormat = "January 2, 2006"
+	InputDateFormat  = "2006-01-02"
+	OutputDateFormat = "January 2, 2006"
 )
 
 type HtmlEntry struct {
@@ -30,7 +30,7 @@ type MdEntry struct {
 
 // NewMdEntry creates a new Markdown entry using the current date.
 func NewMdEntry(title string) *MdEntry {
-	date := time.Now().Format(inputDateFormat)
+	date := time.Now().Format(InputDateFormat)
 	return &MdEntry{
 		Title:     title,
 		Excerpt:   "",
@@ -48,7 +48,7 @@ func NewHtmlEntry(fm map[string]string) (*HtmlEntry, error) {
 	if !ok {
 		return nil, errors.New("Missing publish date in front matter")
 	}
-	formattedPublished, err := e.formatDate(published)
+	formattedPublished, err := FormatDate(published)
 	if err != nil {
 		return nil, err
 	}
@@ -58,7 +58,7 @@ func NewHtmlEntry(fm map[string]string) (*HtmlEntry, error) {
 	if !ok {
 		return nil, errors.New("Missing revision date in front matter")
 	}
-	formattedRevision, err := e.formatDate(revision)
+	formattedRevision, err := FormatDate(revision)
 	if err != nil {
 		return nil, err
 	}
@@ -80,12 +80,12 @@ func NewHtmlEntry(fm map[string]string) (*HtmlEntry, error) {
 	return e, nil
 }
 
-func (e *HtmlEntry) formatDate(dateStr string) (string, error) {
-	parsed, err := time.Parse(inputDateFormat, dateStr)
+func FormatDate(dateStr string) (string, error) {
+	parsed, err := time.Parse(InputDateFormat, dateStr)
 	if err != nil {
 		return "", err
 	}
-	return parsed.Format(outputDateFormat), nil
+	return parsed.Format(OutputDateFormat), nil
 }
 
 func parseTitle(title string) string {

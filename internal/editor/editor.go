@@ -6,8 +6,10 @@ import (
 	"html/template"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"sync"
+	"time"
 
 	"germandv.xyz/internal/entry"
 	"germandv.xyz/internal/filer"
@@ -84,8 +86,10 @@ func ParseMd(fp string) (map[string]string, []byte, error) {
 }
 
 type PageLink struct {
-	Link  string
-	Title string
+	Link        string
+	Title       string
+	Date        time.Time
+	DateDisplay string
 }
 
 // GenerateIndex (re)creates the index.html page listing all published entries.
@@ -99,7 +103,34 @@ func GenerateIndex() error {
 
 	for _, file := range files {
 		title := strings.ReplaceAll(strings.TrimSuffix(file, ".html"), "-", " ")
-		links = append(links, PageLink{Link: file, Title: title})
+
+		// Read .md file to get front matter.
+		entryMd, err := filer.GetPublishedEntry(file)
+		if err != nil {
+			return err
+		}
+		defer entryMd.Close()
+		scanner := bufio.NewScanner(entryMd)
+		frontMatter, err := readFrontMatter(scanner)
+		if err != nil {
+			return err
+		}
+
+		date, err := time.Parse(entry.InputDateFormat, frontMatter["revision"])
+		if err != nil {
+			return err
+		}
+		dateDisplay, err := entry.FormatDate(frontMatter["revision"])
+		if err != nil {
+			return err
+		}
+
+		links = append(links, PageLink{
+			Link:        file,
+			Title:       title,
+			Date:        date,
+			DateDisplay: dateDisplay,
+		})
 	}
 
 	indexWriter, err := filer.CreateIndex()
@@ -114,6 +145,10 @@ func GenerateIndex() error {
 	if err != nil {
 		return err
 	}
+
+	sort.Slice(links, func(i, j int) bool {
+		return links[i].Date.After(links[j].Date)
+	})
 
 	err = tmpl.ExecuteTemplate(indexWriter, "index", links)
 	if err != nil {

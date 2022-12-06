@@ -196,6 +196,9 @@ time {
 .index > ul > li > a:hover {
     color: var(--main-text-color);
 }
+.index > ul > li > span {
+    color: var(--secondary-text-color);
+}
 
 footer {
    border-top: 2px solid var(--accent-bg-color); 

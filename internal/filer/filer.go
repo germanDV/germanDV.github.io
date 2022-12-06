@@ -102,3 +102,9 @@ func CreatePage(filename string) (*os.File, error) {
 func CreateDraft(filename string) (*os.File, error) {
 	return os.Create(filepath.Join(src, "draft", filename))
 }
+
+// GetPublishedEntry retruns a .md file from the `published/` dir
+func GetPublishedEntry(filename string) (*os.File, error) {
+	path := filepath.Join(src, "published", strings.TrimSuffix(filename, "html")+"md")
+	return os.Open(path)
+}

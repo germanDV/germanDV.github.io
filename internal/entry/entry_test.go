@@ -10,7 +10,7 @@ import (
 func TestNewMDEntry(t *testing.T) {
 	t.Parallel()
 
-	date := time.Now().Format(inputDateFormat)
+	date := time.Now().Format(InputDateFormat)
 	title := "my-test-entry"
 	e := NewMdEntry(title)
 
