@@ -23,8 +23,10 @@ func main() {
 		serve()
 	} else if *publishEverything {
 		publishAll()
+		generateFeed()
 	} else if *publishDraft {
 		publish()
+		generateFeed()
 	} else if *entryToCreate != "" {
 		create(*entryToCreate)
 	} else if *rss {

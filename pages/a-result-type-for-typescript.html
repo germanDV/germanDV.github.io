@@ -1,0 +1,197 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="keywords" content="programming, development, go, rust, typescript, javascript, react, fullstack">
+  <meta name="description" content="a Result type is an abstraction to communicate the outcome of fallible operations. In the JS world, we are probably more used to throwing errors, but this approach has its advantages, especially in message-based communication.">
+  <title>germandv: A Result Type For Typescript</title>
+  <link rel="shortcut icon" href="/blog/assets/favicon.ico" type="image/x-icon">
+  <link rel="stylesheet" href="/blog/assets/main.css">
+  <link rel="stylesheet" href="/blog/assets/github-dark.min.css">
+  <script src="/blog/assets/highlight.min.js"></script>
+</head>
+<body class="gruvbox">
+  <main>
+    <header class="entry">
+      <a href="/">&larr;</a>
+
+      
+        <div class="dates">
+          <time datetime="December 6, 2022"><b>Published</b> December 6, 2022</time>
+        </div>
+      
+    </header>
+
+    <h1>A Result Type For Typescript</h1>
+
+    <div class="excerpt">
+      <p>a Result type is an abstraction to communicate the outcome of fallible operations. In the JS world, we are probably more used to throwing errors, but this approach has its advantages, especially in message-based communication.</p>
+    </div>
+
+    <p>When dealing with fallible operations (things that can produce an error), it is normal to <em>throw</em> the error and <em>catch</em> it somewhere else. Or, if the fallible operation is async, reject a <em>promise</em>, (or use the &ldquo;error-first&rdquo; callback pattern). This has the advantage of being a well-known pattern, so anybody new to the project will quickly understand it.
+However, there are situations where these approaches get messy, or are not possible at all.</p>
+
+<p>I was recently working on an Electron app and a browser extension. In both cases, there are two processes that communicate with each other sending messages. Throwing an error is not a great option, because the message sender is not waiting for the response so as to catch any potential errors.</p>
+
+<p>Let&rsquo;s say the main process sends a message to the background process asking it to fetch some information from the database, let&rsquo;s call it <code>fetch</code>. The happy path is that the background process successfully retrieves such information and sends a message with the data to the main process, let&rsquo;s call it <code>data</code>. So, the main process dispatches a <code>fetch</code> event and creates a listener for the <code>data</code> event.</p>
+
+<p>But what about errors? Many things can go wrong in the background process.
+One idea would be to send <code>null</code> or <code>undefined</code> as the <code>data</code> message, but we loose the ability to communicate information about the error to the main process.</p>
+
+<p>An alternative would be to send an <code>error</code> message, instead of a <code>data</code> one. This implies that the main process needs two listeners, one for <code>data</code> and one for <code>error</code>. And what do we do if we have many of this kind of transactions between main and background? Should we have a different error channel for each, or a single one to communicate all errors? Both ways would work just fine, and this could be a good approach, especially if you plan to handle all errors the same way in the main process.</p>
+
+<p>But I didn&rsquo;t like the idea of having channels dedicated to errors. I wanted to communicate errors or values the same way, and to do it in a TS-friendly way, so I can have type information available without any casting or type guarding.</p>
+
+<p>That&rsquo;s when I came across an article suggesting an approximation of Rust&rsquo;s <code>Result</code> for TS. I wish I could find the article to link it here, unfortunately I didn&rsquo;t save it and it&rsquo;s been a while, but I&rsquo;ll try to find it and edit this post as soon as I do.</p>
+
+<p>The implementation itself is quite simple, it&rsquo;s just this:</p>
+
+<pre><code class="language-typescript">type Result&lt;E, V&gt; = { success: false; error: E } | { success: true; value: V }
+</code></pre>
+
+<p>The <em>boolean</em> flag and the <em>union</em> allow TS to infer which one of those two types we are working with based on the value of <code>success</code>.</p>
+
+<p>You may be wondering why not make it generic over the <code>value</code> only, instead of both the <code>error</code> and the <code>value</code>. So, instead of <code>Result&lt;E, V&gt;</code>, just <code>Result&lt;V&gt;</code>, and then <code>{ success: false, error: Error }</code>.
+That would work too, especially if you are not planning on using custom errors, but I am. And if I run into a scenario where I don&rsquo;t have a custom error to use, I simply use <code>Error</code>. So that&rsquo;s the only reason, the flexibility.</p>
+
+<p>Let&rsquo;s go through an example. Imagine we have a voting platform, where we have several proposals and users can vote <em>Yes</em> or <em>No</em>. We will create a <code>Ballot</code> type like so:</p>
+
+<pre><code class="language-typescript">type Ballot = {
+  proposalId: number
+  vote: &quot;Y&quot; | &quot;N&quot;
+}
+</code></pre>
+
+<p>We receive ballots and we need to parse them so that we can tally the votes, we need a <code>parseBallot</code> function. Now, this is a fallible operation, in this example we will receive the ballot as a JSON string, which means we can have an error if the input is not valid JSON. We can also have an error if it&rsquo;s valid JSON, but not a valid ballot. So, this is a perfect opportunity for us to use a <code>Result</code>.
+Instead of <code>parseBallot</code> returning a <code>Ballot</code> or throwing an error, we will return a <code>Result</code>.</p>
+
+<p>A small digression, one thing I don&rsquo;t like about throwing errors in general, is that that information is not discoverable via the type system, you have to look at the implementation to learn that something can actually throw an error (or documentation, when I write things that throw, I try to say so in a jsdoc-style comment, since that comment will pop up when using the function, but still not great).</p>
+
+<p>Take this example:</p>
+
+<pre><code class="language-typescript">function parse(): Ballot {
+  throw new Error()
+}
+
+const b = parse()
+</code></pre>
+
+<p>Imagine that the <code>parse</code> function is defined somewhere else, even in an external library, by just looking at <code>const b = parse()</code>, you get that <code>b</code> is of type <code>Ballot</code> and that the signature of <code>parse()</code> is <code>() =&gt; Ballot</code>, no indication whatsoever that it can throw an error.</p>
+
+<p>End of digression, let&rsquo;s get back to the <code>parseBallot</code> function. The first thing we&rsquo;ll do is to create some errors to convey the specific nature of what went wrong, to keep it simple, we&rsquo;ll create only two, but you can imagine having several different errors, especially if we were dealing with HTTP requests and databases to get and store the ballots.</p>
+
+<pre><code class="language-typescript">class InvalidJSON extends Error {
+  constructor() {
+    super(&quot;payload is not valid JSON.&quot;)
+    this.name = &quot;InvalidJSON&quot;
+  }
+}
+
+class InvalidBallot extends Error {
+  constructor() {
+    super(&quot;malformed ballot payload.&quot;)
+    this.name = &quot;InvalidBallot&quot;
+  }
+}
+
+// This is not necessary, but it's sometimes useful to have this sort of &quot;alias&quot;
+type ParseError = InvalidJSON | InvalidBallot
+</code></pre>
+
+<p>Now that we have error classes for the two things that we are going to check during parsing, let&rsquo;s go ahead with a minimal version of the parsing function, without extensive validation to keep it focused on what&rsquo;s important here:</p>
+
+<pre><code class="language-typescript">function parseBallot(jsonString: string): Result&lt;ParseError, Ballot&gt; {
+  try {
+    const ballot = JSON.parse(jsonString)
+    if (&quot;proposalId&quot; in ballot &amp;&amp; &quot;vote&quot; in ballot) {
+      return { success: true, value: ballot }
+    }
+    return { success: false, error: new InvalidBallot() }
+  } catch {
+    return { success: false, error: new InvalidJSON() }
+  }
+}
+</code></pre>
+
+<p>With this in place, we can use it like so:</p>
+
+<pre><code class="language-typescript">const ballotResult = parseBallot('{&quot;proposalId&quot;: 42, &quot;vote&quot;: &quot;Y&quot;}')
+if (ballotResult.success) {
+  // In this block, TS correctly infers that we're dealing with:
+  //    `{ success: true; value: Ballot }`
+  const count = ballotResult.value.vote === &quot;Y&quot; ? &quot;+1&quot; : &quot;-1&quot;
+  console.log(`${count} for event ${ballotResult.value.proposalId}`)
+  // ballotResult.error // -&gt; property `error` does not exist...
+} else {
+  // In this block, TS correctly infers that we're dealing with:
+  //    `{ success: false; error: ParseError }`
+  console.error(`${ballotResult.error.name}: ${ballotResult.error.message}`)
+  // ballotResult.value // -&gt; property `value` does not exist...
+}
+</code></pre>
+
+<p>Try changing the input of the <code>parseBallot</code> function above, to malformed JSON and to valid JSON but not a valid <code>Ballot</code>.</p>
+
+<p>It will also infer the correct types using ternary operator:</p>
+
+<pre><code class="language-typescript">const _a = ballotResult.success
+  ? ballotResult.value.proposalId // type here is { success: true; value: Ballot }
+  : ballotResult.error.name // type here is { success: false; error: ParseError }
+</code></pre>
+
+<p>That&rsquo;s it.</p>
+
+  </main>
+  
+  <footer>
+      <nav>
+          <div>
+              <a href="/">HOME</a>
+              <a href="/blog/about.html">ABOUT</a>
+              <a href="/feed">RSS</a>
+          </div>
+          <div>
+              <img
+                src="/blog/assets/gruvbox.png"
+                alt="Gruvbox colorscheme"
+                title="Gruvbox"
+                width="125px"
+                onclick="changeTheme('gruvbox');"
+              >
+              <img
+                src="/blog/assets/nord.png"
+                alt="Nord colorscheme"
+                title="Nord"
+                width="125px"
+                onclick="changeTheme('nord');"
+              >
+              <img
+                src="/blog/assets/light.png"
+                alt="Light colorscheme"
+                title="Light"
+                width="125px"
+                onclick="changeTheme('onelight');"
+              >
+          </div>
+      </nav>
+  </footer>
+  <script>
+    function setTheme(name) {
+        window.document.querySelector('body').className = name;
+    }
+    function changeTheme(name) {
+        window.localStorage.setItem('colorscheme', name);
+        setTheme(name);
+    }
+    window.onload = () => {
+        const stored = window.localStorage.getItem('colorscheme');
+        const theme = ['gruvbox', 'nord', 'onelight'].includes(stored) ? stored : 'gruvbox';
+        setTheme(theme);
+    };
+  </script>
+
+  <script>hljs.highlightAll();</script>
+</body>
+</html>
