@@ -200,6 +200,12 @@ time {
     color: var(--secondary-text-color);
 }
 
+blockquote {
+  font-style: italic;
+  border-left: 10px solid var(--accent-bg-color);
+  padding-left: 20px;
+}
+
 footer {
    border-top: 2px solid var(--accent-bg-color); 
    margin-top: 48px;
