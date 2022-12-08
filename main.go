@@ -32,7 +32,8 @@ func main() {
 	} else if *rss {
 		generateFeed()
 	} else {
-		fmt.Println("Unknown operation. Run -h for help.")
+		// By default, start the web server.
+		serve()
 	}
 }
 
