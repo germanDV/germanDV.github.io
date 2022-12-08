@@ -31,7 +31,7 @@ type Feed struct {
 func Generate() error {
 	feed := Feed{
 		Title:       "germandv",
-		Link:        "https://germandv.xyz",
+		Link:        "https://germandv.me",
 		Description: "Programming things",
 		LastBuild:   time.Now().Format(time.RFC3339),
 		Lang:        "en-us",
@@ -81,7 +81,7 @@ func Generate() error {
 }
 
 func getLink(mdFilepath string) string {
-	baseURL := "https://germandv.xyz/blog/"
+	baseURL := "https://germandv.me/blog/"
 	parts := strings.Split(mdFilepath, "/")
 	mdFile := parts[len(parts)-1]
 	htmlFile := strings.TrimSuffix(mdFile, ".md") + ".html"

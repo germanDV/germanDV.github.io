@@ -2,50 +2,50 @@
 <rss version="2.0">
     <channel>
         <title>germandv</title>
-        <link>https://germandv.xyz</link>
+        <link>https://germandv.me</link>
         <description>Programming things</description>
         <language>en-us</language>
-        <lastBuildDate>2022-12-07T13:16:08-03:00</lastBuildDate>
+        <lastBuildDate>2022-12-08T18:41:50-03:00</lastBuildDate>
 
         
             <item>
-                <pubDate>December 6, 2022</pubDate>
-                <link>https://germandv.xyz/blog/a-result-type-for-typescript.html</link>
-                <guid>https://germandv.xyz/blog/a-result-type-for-typescript.html</guid>
-                <title>A Result Type For Typescript</title>
-                <description>a Result type is an abstraction to communicate the outcome of fallible operations. In the JS world, we are probably more used to throwing errors, but this approach has its advantages, especially in message-based communication.</description>
-            </item>
-        
-            <item>
-                <pubDate>December 7, 2022</pubDate>
-                <link>https://germandv.xyz/blog/basic-auth-and-the-browser-login-form.html</link>
-                <guid>https://germandv.xyz/blog/basic-auth-and-the-browser-login-form.html</guid>
-                <title>Basic Auth And The Browser Login Form</title>
-                <description>Browsers already have a login form that we can leverage for simple authentication requirements. Let's explore basic auth.</description>
-            </item>
-        
-            <item>
-                <pubDate>November 30, 2022</pubDate>
-                <link>https://germandv.xyz/blog/utility-to-deal-with-secrets-in-TS.html</link>
-                <guid>https://germandv.xyz/blog/utility-to-deal-with-secrets-in-TS.html</guid>
-                <title>Utility To Deal With Secrets In TS</title>
-                <description>If your code deals, at one point or another, with secrets in plain text, it might be a good idea to prevent accidental logging of such sensitive information.</description>
-            </item>
-        
-            <item>
                 <pubDate>November 29, 2022</pubDate>
-                <link>https://germandv.xyz/blog/utility-to-deal-with-secrets-in-go.html</link>
-                <guid>https://germandv.xyz/blog/utility-to-deal-with-secrets-in-go.html</guid>
+                <link>https://germandv.me/blog/utility-to-deal-with-secrets-in-go.html</link>
+                <guid>https://germandv.me/blog/utility-to-deal-with-secrets-in-go.html</guid>
                 <title>Utility To Deal With Secrets In Go</title>
                 <description>If your code deals, at one point or another, with secrets in plain text, it might be a good idea to prevent accidental logging of such sensitive information.</description>
             </item>
         
             <item>
                 <pubDate>December 2, 2022</pubDate>
-                <link>https://germandv.xyz/blog/a-makefile-for-go-projects.html</link>
-                <guid>https://germandv.xyz/blog/a-makefile-for-go-projects.html</guid>
+                <link>https://germandv.me/blog/a-makefile-for-go-projects.html</link>
+                <guid>https://germandv.me/blog/a-makefile-for-go-projects.html</guid>
                 <title>A Makefile For Go Projects</title>
                 <description>I like using a Makefile in my Go projects. These are some tasks that I find useful in pretty much all of them.</description>
+            </item>
+        
+            <item>
+                <pubDate>December 6, 2022</pubDate>
+                <link>https://germandv.me/blog/a-result-type-for-typescript.html</link>
+                <guid>https://germandv.me/blog/a-result-type-for-typescript.html</guid>
+                <title>A Result Type For Typescript</title>
+                <description>a Result type is an abstraction to communicate the outcome of fallible operations. In the JS world, we are probably more used to throwing errors, but this approach has its advantages, especially in message-based communication.</description>
+            </item>
+        
+            <item>
+                <pubDate>December 7, 2022</pubDate>
+                <link>https://germandv.me/blog/basic-auth-and-the-browser-login-form.html</link>
+                <guid>https://germandv.me/blog/basic-auth-and-the-browser-login-form.html</guid>
+                <title>Basic Auth And The Browser Login Form</title>
+                <description>Browsers already have a login form that we can leverage for simple authentication requirements. Let's explore basic auth.</description>
+            </item>
+        
+            <item>
+                <pubDate>November 30, 2022</pubDate>
+                <link>https://germandv.me/blog/utility-to-deal-with-secrets-in-TS.html</link>
+                <guid>https://germandv.me/blog/utility-to-deal-with-secrets-in-TS.html</guid>
+                <title>Utility To Deal With Secrets In TS</title>
+                <description>If your code deals, at one point or another, with secrets in plain text, it might be a good idea to prevent accidental logging of such sensitive information.</description>
             </item>
         
 
