@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 
 	"germandv.xyz/internal/editor"
@@ -38,7 +39,15 @@ func main() {
 }
 
 func serve() {
-	s := server.New(4000)
+	portStr, ok := os.LookupEnv("PORT")
+	if !ok {
+		portStr = "4000"
+	}
+	port, err := strconv.Atoi(portStr)
+	if err != nil {
+		panic("PORT is not a number")
+	}
+	s := server.New(port)
 	s.Listen()
 }
 
