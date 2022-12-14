@@ -1,0 +1,491 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="keywords" content="programming, development, go, rust, typescript, javascript, react, fullstack">
+  <meta name="description" content="In Go, it&#39;s generally fine to run hundreds of thousands (even millions) of goroutines. However, you may need to limit them. One of the ways to do so is by implementing a pool of workers or threadpool.">
+  <title>germandv: Go Threadpool</title>
+  <link rel="shortcut icon" href="/blog/assets/favicon.ico" type="image/x-icon">
+  <link rel="stylesheet" href="/blog/assets/main.css">
+  <link rel="stylesheet" href="/blog/assets/github-dark.min.css">
+  <script src="/blog/assets/highlight.min.js"></script>
+</head>
+<body class="gruvbox">
+  <main>
+    <header class="entry">
+      <a href="/">&larr;</a>
+
+      
+        <div class="dates">
+          <time datetime="December 14, 2022"><b>Published</b> December 14, 2022</time>
+        </div>
+      
+    </header>
+
+    <h1>Go Threadpool</h1>
+
+    <div class="excerpt">
+      <p>In Go, it&#39;s generally fine to run hundreds of thousands (even millions) of goroutines. However, you may need to limit them. One of the ways to do so is by implementing a pool of workers or threadpool.</p>
+    </div>
+
+    <p>If you have some background with <em>Node</em>, as I do, you&rsquo;ve probably seen the pattern where you spawn one instance of your program per CPU (I know this is true for other languagues too, but I&rsquo;ll limit myself to talk about what I have extensive experience with). Goroutines are not like that, you can run hundreds of thousands of them, even millions. That&rsquo;s because goroutines are <strong>green threads</strong>, not <strong>os threads</strong>. They are handled by Go and not by the OS directly.</p>
+
+<p>Go handles the management of os threads. If you need to control the number of operating system threads allocated, you can use <code>GOMAXPROCS</code>. By default, Go programs run with <code>GOMAXPROCS</code> set to the number of cores available. So, most of the times, you needn&rsquo;t worry about it.</p>
+
+<p>Today, we will create a threadpool to limit the amount of goroutines that our program will use. We will have a limited pool of goroutines doing some work, there will never be more than <em>n</em> goroutines running concurrently.</p>
+
+<p>To illustrate with a more or less real example and not just goroutines sleeping for some arbitrary time, we will calculate the area of 100k polygons, which we will read from a text file (<em>polygons.txt</em>).</p>
+
+<p>This is what a line of <em>polygons.txt</em> looks like:</p>
+
+<pre><code>(153,24),(127,29),(95,34),(79,38),(65,42)
+</code></pre>
+
+<p>You may get the full file <a href="/blog/assets/polygons.txt">here</a>.</p>
+
+<p><em>If you are not familiar with polygons or how to calculate their area, don&rsquo;t worry, it&rsquo;s not what we are here for, you can just copy paste that part of the code without worrying too much about what it actually does.</em></p>
+
+<p>Let&rsquo;s create a new project:</p>
+
+<pre><code class="language-sh">mkdir threadpool
+cd threadpool
+go mod init threadpool
+touch threadpool.go
+mv ~/Downloads/polygons.txt . // Assuming you downloaded polygons.txt to ~/Downloads
+</code></pre>
+
+<p>So, first things first, let&rsquo;s write a program to read the file and calculate the polygons&rsquo; areas, without any concurrency. We will measure it (just some basic measure, not a proper benchmark) and then improve it by introducing a threadpool.</p>
+
+<p>Since we may end up with a couple different examples, let&rsquo;s follow the convention of using a <code>cmd</code> folder.</p>
+
+<pre><code class="language-sh">mkdir -p cmd/single
+touch cmd/single/main.go
+</code></pre>
+
+<p><br /></p>
+
+<pre><code class="language-go">// cmd/single/main.go
+package main
+
+import (
+  &quot;bufio&quot;
+  &quot;fmt&quot;
+  &quot;log&quot;
+  &quot;math&quot;
+  &quot;os&quot;
+  &quot;regexp&quot;
+  &quot;strconv&quot;
+  &quot;time&quot;
+)
+
+// We'll have a struct to represent each point of a polygon.
+// Again, don't worry too much about the geometry of things if you're unfamiliar.
+type Point2D struct {
+  x int
+  y int
+}
+
+func main() {
+  // Record the start time.
+  start := time.Now()
+
+  // Open the file for reads.
+  file, err := os.Open(&quot;polygons.txt&quot;)
+  if err != nil {
+    log.Fatal(err)
+  }
+  defer file.Close()
+
+  // For each line of the file, call `calcArea` (each line represents a polygon).
+  scanner := bufio.NewScanner(file)
+  for scanner.Scan() {
+    calcArea(scanner.Text())
+  }
+
+  fmt.Printf(&quot;Done in %s\n&quot;, time.Since(start))
+}
+
+// You can treat this as a black box if you are not interested in the calculation
+// of a polygon's area, it just does that and it's not important for our example.
+func calcArea(pointStr string) {
+  r := regexp.MustCompile(`\((\d*),(\d*)\)`)
+  points := []Point2D{}
+  for _, p := range r.FindAllStringSubmatch(pointStr, -1) {
+    x, _ := strconv.Atoi(p[1])
+    y, _ := strconv.Atoi(p[2])
+    points = append(points, Point2D{x, y})
+  }
+
+  area := 0.0
+  for i := 0; i &lt; len(points); i++ {
+    a, b := points[i], points[(i+1)%len(points)]
+    area += float64(a.x*b.y) - float64(a.y*b.x)
+  }
+
+  fmt.Println(math.Abs(area) / 2.0)
+}
+</code></pre>
+
+<p>We could read the entire file into memory instead of using a stream, depending on the size of the file, you may prefer one or the other. Generally speaking, I prefer working with streams to know my programs can handle files of any size.</p>
+
+<p>It would look something like:</p>
+
+<pre><code class="language-go">fileBytes, err := os.ReadFile(filename)
+if err != nil {
+  log.Fatal(err)
+}
+
+for _, line := range strings.Split(string(fileBytes), &quot;\n&quot;) {
+  calcArea(line)
+}
+</code></pre>
+
+<p>But I&rsquo;m keeping the code with the <code>bufio.Scanner</code>. If you run it, you should see all the areas being printed to your terminal and a message at the end saying how long it took.</p>
+
+<pre><code class="language-sh">go run cmd/single/main.go
+</code></pre>
+
+<p>For me, it&rsquo;s around 3.7 seconds, but your results may be totally different. Check it out.</p>
+
+<p>Let&rsquo;s now use a threadpool. We will first imagine the kind of API we want it to expose and then build it, it&rsquo;s a nice design technique in my opinion.</p>
+
+<p>I want to be able to:</p>
+
+<ul>
+<li>Set the number of threads in the pool. Throughout this article I&rsquo;m using threads in the goroutine sense, meaning green threads.</li>
+<li>Tell the workers in the pool what work they need to do. For us that&rsquo;s going to be &ldquo;calculate the area of a polygon&rdquo;.</li>
+<li>Queue work. In our example that would be &ldquo;feed polygons to the workers&rdquo;.</li>
+<li>Wait for all queued tasks to be finished.</li>
+</ul>
+
+<p>So, let&rsquo;s create another <em>main.go</em> using this yet-to-be-built threadpool:</p>
+
+<pre><code class="language-sh">mkdir cmd/pool
+touch cmd/pool/main.go
+</code></pre>
+
+<p><br /></p>
+
+<pre><code class="language-go">// cmd/pool/main.go
+package main
+
+import (
+  &quot;bufio&quot;
+  &quot;fmt&quot;
+  &quot;log&quot;
+  &quot;math&quot;
+  &quot;os&quot;
+  &quot;regexp&quot;
+  &quot;strconv&quot;
+  &quot;threadpool&quot; // this doesn't exist yet, we'll create it in a second.
+  &quot;time&quot;
+)
+
+type Point2D struct {
+  x int
+  y int
+}
+
+func main() {
+  start := time.Now()
+
+  file, err := os.Open(&quot;polygons.txt&quot;)
+  if err != nil {
+    log.Fatal(err)
+  }
+  defer file.Close()
+
+  // Here we create a new threadpool with 1k threads
+  // (or workers or goroutines, however you prefer to think about them).
+  //
+  // With the second argument (`calcArea`) we tell the workers the task that
+  // they will need to run each time they receive some work.
+  // In our case, they will receive a string representing a polygon,
+  // and they need to calculate its area.
+  //
+  // The threadpool is generic over the kind of &quot;work&quot; it will get.
+  // In our case, we will be feeding it polygons represented as strings.
+  // Go can infer that by looking at the signature of our `calcArea` function,
+  // so we don't need to be explcit about it.
+  // pool := threadpool.New[string](1_000, calcArea) // unnecessary `[string]` annotation.
+  pool := threadpool.New(1_000, calcArea)
+
+  scanner := bufio.NewScanner(file)
+  for scanner.Scan() {
+    // We send some work to the pool.
+    // If there are &quot;idle workers&quot;, they will pick it up immediately.
+    // If not, it will wait until some worker is free.
+    pool.Queue(scanner.Text())
+  }
+
+  fmt.Printf(&quot;Done in %s\n&quot;, time.Since(start))
+}
+
+// Exact same function as before.
+func calcArea(pointStr string) {
+  r := regexp.MustCompile(`\((\d*),(\d*)\)`)
+  points := []Point2D{}
+  for _, p := range r.FindAllStringSubmatch(pointStr, -1) {
+    x, _ := strconv.Atoi(p[1])
+    y, _ := strconv.Atoi(p[2])
+    points = append(points, Point2D{x, y})
+  }
+
+  area := 0.0
+  for i := 0; i &lt; len(points); i++ {
+    a, b := points[i], points[(i+1)%len(points)]
+    area += float64(a.x*b.y) - float64(a.y*b.x)
+  }
+
+  fmt.Println(math.Abs(area) / 2.0)
+}
+</code></pre>
+
+<p>For this implementation, I decided that the constructor, the <code>New</code> function, would take both the number of threads and the function that the workers need to run. You may prefer to provide the task at a later point. But I figured this was the simplest way of explaining it and creating a brief but somewhat real example.</p>
+
+<p>Let&rsquo;s have a first go at the threadpool implementation:</p>
+
+<pre><code class="language-go">// threadpool.go
+package threadpool
+
+// As stated before, our threadpool is generic over the
+// the type of work it receives. That's why `T` is also the
+// type of the argument to the Task function.
+type ThreadPool[T any] struct {
+  // The pool will receive work in this channel.
+  inputCh chan T
+
+  // The number of threads/workers/goroutines we want in the pool.
+  threads int
+
+  // A wrapper that will pick up work from the `inputCh`
+  // and run a user-provided function.
+  Task    func(chan T)
+}
+
+// New creates a ThreadPool with the given amount of threads.
+func New[T any](threads int, task func(T)) *ThreadPool[T] {
+  pool := &amp;ThreadPool[T]{
+    // This is the key part of our threadpool, the buffered channel.
+    // By providing the length of the channel, we limit the amount of goroutines.
+    inputCh: make(chan T, threads),
+    threads: threads,
+  }
+
+  pool.Task = func(inputChannel chan T) {
+    // Listen to messages on the input channel.
+    for work := range inputChannel {
+      task(work)
+    }
+  }
+
+  // We start as many goroutines as the number of threads requested.
+  // Each goroutine will execute the pool.Task, which will listen
+  // for work on the input channel and run the given function.
+  for i := 0; i &lt; threads; i++ {
+    go pool.Task(pool.inputCh)
+  }
+
+  return pool
+}
+
+// Queue sends work to the pool of workers.
+func (tp *ThreadPool[T]) Queue(work T) {
+  // Send to the channel the workers are listening to.
+  tp.inputCh &lt;- work
+}
+</code></pre>
+
+<p>If we <code>go run cmd/pool/main.go</code>, we will see a lot of output in our terminal, the area of each of the 100k polygons. It may be hard to tell from this output, but we have a problem. If you run it multiple times, maybe you will notice that sometimes, the <em>&ldquo;Done in x&rdquo;</em> message is not the last line that&rsquo;s printed. This is already a hint that something is going wrong.</p>
+
+<p>To visualize the problem better, let&rsquo;s change our input to a much smaller one. Let&rsquo;s create a <em>mini.txt</em> with just 3 polygons in it:</p>
+
+<pre><code class="language-sh">head -n 3 polygons.txt &gt; mini.txt
+</code></pre>
+
+<p>And we will introduce some arbitrary delay in our <code>calcArea</code> function.</p>
+
+<pre><code class="language-go">// cmd/pool/main.go
+
+...
+
+func main() {
+  ...
+  file, err := os.Open(&quot;mini.txt&quot;)
+  ...
+}
+
+func calcArea(pointStr string) {
+  time.Sleep(200 * time.Millisecond)
+  ...
+}
+</code></pre>
+
+<p>If we run it now, we will see that the only line that gets printed is the <em>&ldquo;Done in x&rdquo;</em> one. But we were expecting 3 polygon areas to be printed before that, what&rsquo;s going on?</p>
+
+<p>The problem is that our program, our main goroutine, is not waiting for the goroutines in the threadpool to finish their jobs.</p>
+
+<p>To wait for them, we will introduce a <code>sync.WaitGroup</code>. In a nutshell, a WaitGroup allows us to keep count of pending tasks and wait for all of them to finish.</p>
+
+<pre><code class="language-go">// threadpool.go
+package threadpool
+
+// New import
+import &quot;sync&quot;
+
+type ThreadPool[T any] struct {
+  inputCh chan T
+  threads int
+  Task    func(chan T, *sync.WaitGroup)
+  wg      sync.WaitGroup // we add a WaitGroup to our ThreadPool struct
+}
+
+func New[T any](threads int, task func(T)) *ThreadPool[T] {
+  pool := &amp;ThreadPool[T]{
+    inputCh: make(chan T, threads),
+    threads: threads,
+  }
+
+  // We tell the WaitGroup how many tasks it needs to keep track of.
+  pool.wg.Add(threads)
+
+  pool.Task = func(inputChannel chan T, wg *sync.WaitGroup) {
+    // Once a worker is done, it calls `wg.Done()` to let the WaitGroup know
+    // that it has finished.
+    defer wg.Done()
+    for work := range inputChannel {
+      task(work)
+    }
+  }
+
+  for i := 0; i &lt; threads; i++ {
+    // We pass a reference to the WaitGroup
+    // so that goroutines can call `Done()` on it.
+    go pool.Task(pool.inputCh, &amp;pool.wg)
+  }
+
+  return pool
+}
+
+func (tp *ThreadPool[T]) Queue(work T) {
+  tp.inputCh &lt;- work
+}
+
+// We expose a new method that will allow clients to wait for all workers
+// to finish by leveraging the WaitGroup.
+//
+// It's very important that we close the channel here, otherwise, the defered
+// code in `pool.Task` will not run (ranging over a channel finishes when the
+// the channel is closed), and that's the code that reduces the WaitGroup counter.
+// Without it, the WaitGroup would wait forever. We would get a deadlock error.
+func (tp *ThreadPool[T]) Wait() {
+  // We close the channel, signaling to all workers that no more work will be sent.
+  close(tp.inputCh)
+  // We wait for all workers to finish their tasks.
+  tp.wg.Wait()
+}
+</code></pre>
+
+<p>In our <code>main</code> function we just need to call <code>pool.Wait()</code>, right before printing the final message:</p>
+
+<pre><code class="language-go">// cmd/pool/main.go
+...
+
+func main() {
+  ...
+  // This will block until all workers in the pool finish.
+  pool.Wait() 
+
+  // Same message we had before
+  fmt.Printf(&quot;Done in %s\n&quot;, time.Since(start))
+}
+
+...
+</code></pre>
+
+<p>If you run the code now, you should see the expected output, the three areas and the &ldquo;<em>Done in x</em>&rdquo; message. You can now switch back to <em>polygons.txt</em> instead of <em>mini.txt</em>, and get rid of the <code>time.Sleep(200 * time.Millisecond)</code> line in <code>calcArea</code>.</p>
+
+<p>Running the code with a pool of 1k threads, takes around 2 secs for me, compared to the ~3.7 of the initial version, that&rsquo;s a nice improvement, and we had fun building a threadpool, a good day at the office.</p>
+
+<p>Before we wrap up, one last thing that might come in handy is checking the number of goroutines we&rsquo;re using. This is helpful to confirm our understanding and you might use it if you play around with this implementation and are not sure the threadpool is keeping the expected cap on the number of goroutines.</p>
+
+<p>It&rsquo;s as simple as calling <code>runtime.NumGoroutine()</code>. You just need to be carefull where you place the call. Let&rsquo;s do it before and after the call to <code>pool.Wait()</code>:</p>
+
+<pre><code class="language-go">...
+
+func main() {
+  ...
+  fmt.Printf(&quot;Goroutines: #%d\n&quot;, runtime.NumGoroutine())
+  pool.Wait()
+  fmt.Printf(&quot;Goroutines: #%d\n&quot;, runtime.NumGoroutine())
+  ...
+}
+
+...
+</code></pre>
+
+<p>You should see something like:</p>
+
+<pre><code>Goroutines: #1001
+Goroutines: #1
+Done in 2s
+</code></pre>
+
+<p>We have set the threadpool to have 1k threads, our <em>main</em> func runs in its own goroutine and so we end up with <strong>1001</strong>. After waiting for all the work to be finished, the goroutines go down to just one (for our <em>main</em>). Everything checks out, even though we have 100k polygons, we use 1k goroutines, because that&rsquo;s the limit we set when creating the threadpool.</p>
+
+<p>One other thing that may not be obvious, is that we always allocate 1k goroutines. So, if we are processing a file with 20 polygons in it, it&rsquo;s overkill to have such a large threadpool, 980 goroutines will have nothing to do.</p>
+
+  </main>
+  
+  <footer>
+      <nav>
+          <div>
+              <a href="/">HOME</a>
+              <a href="/blog/about.html">ABOUT</a>
+              <a href="/feed">RSS</a>
+          </div>
+          <div>
+              <img
+                src="/blog/assets/gruvbox.png"
+                alt="Gruvbox colorscheme"
+                title="Gruvbox"
+                width="125px"
+                onclick="changeTheme('gruvbox');"
+              >
+              <img
+                src="/blog/assets/nord.png"
+                alt="Nord colorscheme"
+                title="Nord"
+                width="125px"
+                onclick="changeTheme('nord');"
+              >
+              <img
+                src="/blog/assets/light.png"
+                alt="Light colorscheme"
+                title="Light"
+                width="125px"
+                onclick="changeTheme('onelight');"
+              >
+          </div>
+      </nav>
+  </footer>
+  <script>
+    function setTheme(name) {
+        window.document.querySelector('body').className = name;
+    }
+    function changeTheme(name) {
+        window.localStorage.setItem('colorscheme', name);
+        setTheme(name);
+    }
+    window.onload = () => {
+        const stored = window.localStorage.getItem('colorscheme');
+        const theme = ['gruvbox', 'nord', 'onelight'].includes(stored) ? stored : 'gruvbox';
+        setTheme(theme);
+    };
+  </script>
+
+  <script>hljs.highlightAll();</script>
+</body>
+</html>
