@@ -20,6 +20,7 @@
       
         <div class="dates">
           <time datetime="December 6, 2022"><b>Published</b> December 6, 2022</time>
+          <time datetime="December 15, 2022"><b>Last Revision</b> December 15, 2022</time>
         </div>
       
     </header>
@@ -48,12 +49,14 @@ One idea would be to send <code>null</code> or <code>undefined</code> as the <co
 
 <p>The implementation itself is quite simple, it&rsquo;s just this:</p>
 
-<pre><code class="language-typescript">type Result&lt;E, V&gt; = { success: false; error: E } | { success: true; value: V }
+<pre><code class="language-typescript">type Result&lt;E, V&gt; = { status: &quot;error&quot;; error: E } | { status: &quot;success&quot;; value: V }
 </code></pre>
 
-<p>The <em>boolean</em> flag and the <em>union</em> allow TS to infer which one of those two types we are working with based on the value of <code>success</code>.</p>
+<p>The <em>status</em> flag and the <em>union</em> allow TS to infer which one of those two types we are working with based on the value of <code>status</code>.</p>
 
-<p>You may be wondering why not make it generic over the <code>value</code> only, instead of both the <code>error</code> and the <code>value</code>. So, instead of <code>Result&lt;E, V&gt;</code>, just <code>Result&lt;V&gt;</code>, and then <code>{ success: false, error: Error }</code>.
+<p>At first, I was using a boolean flag to tell errors from successes, <code>{ success: false; error: E } | { success: true, value: V }</code> that is. But after running into some TS quirks, I realized it&rsquo;s much easier on TS to use a string here. If you feel like experimenting, try the boolean option and compile your code with <code>tsc</code>, run it with <code>ts-node</code>, copy/paste in the typescript playground, and you&rsquo;ll probably run into the same inconsistencies I have.</p>
+
+<p>You may be wondering why not make <code>Result</code> generic over the <code>value</code> only, instead of both the <code>error</code> and the <code>value</code>. So, instead of <code>Result&lt;E, V&gt;</code>, just <code>Result&lt;V&gt;</code>, and then <code>{ status: &quot;error&quot;, error: Error }</code>.
 That would work too, especially if you are not planning on using custom errors, but I am. And if I run into a scenario where I don&rsquo;t have a custom error to use, I simply use <code>Error</code>. So that&rsquo;s the only reason, the flexibility.</p>
 
 <p>Let&rsquo;s go through an example. Imagine we have a voting platform, where we have several proposals and users can vote <em>Yes</em> or <em>No</em>. We will create a <code>Ballot</code> type like so:</p>
@@ -96,7 +99,7 @@ class InvalidBallot extends Error {
   }
 }
 
-// This is not necessary, but it's sometimes useful to have this sort of &quot;alias&quot;
+// This is not necessary, but it's sometimes useful to have this sort of &quot;grouping&quot;.
 type ParseError = InvalidJSON | InvalidBallot
 </code></pre>
 
@@ -106,11 +109,11 @@ type ParseError = InvalidJSON | InvalidBallot
   try {
     const ballot = JSON.parse(jsonString)
     if (&quot;proposalId&quot; in ballot &amp;&amp; &quot;vote&quot; in ballot) {
-      return { success: true, value: ballot }
+      return { status: &quot;success&quot;, value: ballot }
     }
-    return { success: false, error: new InvalidBallot() }
+    return { status: &quot;error&quot;, error: new InvalidBallot() }
   } catch {
-    return { success: false, error: new InvalidJSON() }
+    return { status: &quot;error&quot;, error: new InvalidJSON() }
   }
 }
 </code></pre>
@@ -118,15 +121,15 @@ type ParseError = InvalidJSON | InvalidBallot
 <p>With this in place, we can use it like so:</p>
 
 <pre><code class="language-typescript">const ballotResult = parseBallot('{&quot;proposalId&quot;: 42, &quot;vote&quot;: &quot;Y&quot;}')
-if (ballotResult.success) {
+if (ballotResult.status === &quot;success&quot;) {
   // In this block, TS correctly infers that we're dealing with:
-  //    `{ success: true; value: Ballot }`
+  //    `{ status: &quot;success&quot;; value: Ballot }`
   const count = ballotResult.value.vote === &quot;Y&quot; ? &quot;+1&quot; : &quot;-1&quot;
   console.log(`${count} for event ${ballotResult.value.proposalId}`)
   // ballotResult.error // -&gt; property `error` does not exist...
 } else {
   // In this block, TS correctly infers that we're dealing with:
-  //    `{ success: false; error: ParseError }`
+  //    `{ status: &quot;error&quot;; error: ParseError }`
   console.error(`${ballotResult.error.name}: ${ballotResult.error.message}`)
   // ballotResult.value // -&gt; property `value` does not exist...
 }
@@ -136,10 +139,31 @@ if (ballotResult.success) {
 
 <p>It will also infer the correct types using ternary operator:</p>
 
-<pre><code class="language-typescript">const _a = ballotResult.success
-  ? ballotResult.value.proposalId // type here is { success: true; value: Ballot }
-  : ballotResult.error.name // type here is { success: false; error: ParseError }
+<pre><code class="language-typescript">const _a = ballotResult.status === &quot;success&quot;
+  // type here is { status: &quot;success&quot;; value: Ballot }
+  ? ballotResult.value.proposalId
+  // type here is { status: &quot;error&quot;; error: ParseError }
+  : ballotResult.error.name
 </code></pre>
+
+<p>A week or so after originally writing this article, while working on a new article about Node worker threads, I found out that Node is using this exact same approach for its <code>PromiseSettledResult</code>, it looks something like:</p>
+
+<pre><code class="language-typescript">interface PromiseFulfilledResult&lt;T&gt; {
+  status: &quot;fulfilled&quot;;
+  value: T;
+}
+
+interface PromiseRejectedResult {
+  status: &quot;rejected&quot;;
+  reason: any;
+}
+
+type PromiseSettledResult&lt;T&gt; = PromiseFulfilledResult&lt;T&gt; | PromiseRejectedResult;
+</code></pre>
+
+<p>Isn&rsquo;t that great? I feel more confident introducing this pattern to a team having an example of its usage in Node itself. Also, remember that I said using booleans instead of a <em>status</em> string was causing some inconsistencies? It&rsquo;s good to see that Node also uses a <em>status</em> string.</p>
+
+<p>I like the idea of introducing two interfaces, in our case they could be <code>ResultSuccess</code> and <code>ResultError</code> for example, but I also like the idea of not introducing too many types. So, I&rsquo;ll leave this example as is, but depending on the project, I may go with the additional interfaces in certain circumstances.</p>
 
 <p>That&rsquo;s it.</p>
 

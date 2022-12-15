@@ -1,7 +1,7 @@
 ---
 title: a-result-type-for-typescript
 published: 2022-12-06
-revision: 2022-12-06
+revision: 2022-12-15
 excerpt: a Result type is an abstraction to communicate the outcome of fallible operations. In the JS world, we are probably more used to throwing errors, but this approach has its advantages, especially in message-based communication.
 ---
 
@@ -24,12 +24,14 @@ That's when I came across an article suggesting an approximation of Rust's `Resu
 The implementation itself is quite simple, it's just this:
 
 ```typescript
-type Result<E, V> = { success: false; error: E } | { success: true; value: V }
+type Result<E, V> = { status: "error"; error: E } | { status: "success"; value: V }
 ```
 
-The _boolean_ flag and the _union_ allow TS to infer which one of those two types we are working with based on the value of `success`.
+The _status_ flag and the _union_ allow TS to infer which one of those two types we are working with based on the value of `status`.
 
-You may be wondering why not make it generic over the `value` only, instead of both the `error` and the `value`. So, instead of `Result<E, V>`, just `Result<V>`, and then `{ success: false, error: Error }`.
+At first, I was using a boolean flag to tell errors from successes, `{ success: false; error: E } | { success: true, value: V }` that is. But after running into some TS quirks, I realized it's much easier on TS to use a string here. If you feel like experimenting, try the boolean option and compile your code with `tsc`, run it with `ts-node`, copy/paste in the typescript playground, and you'll probably run into the same inconsistencies I have.
+
+You may be wondering why not make `Result` generic over the `value` only, instead of both the `error` and the `value`. So, instead of `Result<E, V>`, just `Result<V>`, and then `{ status: "error", error: Error }`.
 That would work too, especially if you are not planning on using custom errors, but I am. And if I run into a scenario where I don't have a custom error to use, I simply use `Error`. So that's the only reason, the flexibility.
 
 Let's go through an example. Imagine we have a voting platform, where we have several proposals and users can vote _Yes_ or _No_. We will create a `Ballot` type like so:
@@ -75,7 +77,7 @@ class InvalidBallot extends Error {
   }
 }
 
-// This is not necessary, but it's sometimes useful to have this sort of "alias"
+// This is not necessary, but it's sometimes useful to have this sort of "grouping".
 type ParseError = InvalidJSON | InvalidBallot
 ```
 
@@ -86,11 +88,11 @@ function parseBallot(jsonString: string): Result<ParseError, Ballot> {
   try {
     const ballot = JSON.parse(jsonString)
     if ("proposalId" in ballot && "vote" in ballot) {
-      return { success: true, value: ballot }
+      return { status: "success", value: ballot }
     }
-    return { success: false, error: new InvalidBallot() }
+    return { status: "error", error: new InvalidBallot() }
   } catch {
-    return { success: false, error: new InvalidJSON() }
+    return { status: "error", error: new InvalidJSON() }
   }
 }
 ```
@@ -99,15 +101,15 @@ With this in place, we can use it like so:
 
 ```typescript
 const ballotResult = parseBallot('{"proposalId": 42, "vote": "Y"}')
-if (ballotResult.success) {
+if (ballotResult.status === "success") {
   // In this block, TS correctly infers that we're dealing with:
-  //    `{ success: true; value: Ballot }`
+  //    `{ status: "success"; value: Ballot }`
   const count = ballotResult.value.vote === "Y" ? "+1" : "-1"
   console.log(`${count} for event ${ballotResult.value.proposalId}`)
   // ballotResult.error // -> property `error` does not exist...
 } else {
   // In this block, TS correctly infers that we're dealing with:
-  //    `{ success: false; error: ParseError }`
+  //    `{ status: "error"; error: ParseError }`
   console.error(`${ballotResult.error.name}: ${ballotResult.error.message}`)
   // ballotResult.value // -> property `value` does not exist...
 }
@@ -118,9 +120,31 @@ Try changing the input of the `parseBallot` function above, to malformed JSON an
 It will also infer the correct types using ternary operator:
 
 ```typescript
-const _a = ballotResult.success
-  ? ballotResult.value.proposalId // type here is { success: true; value: Ballot }
-  : ballotResult.error.name // type here is { success: false; error: ParseError }
+const _a = ballotResult.status === "success"
+  // type here is { status: "success"; value: Ballot }
+  ? ballotResult.value.proposalId
+  // type here is { status: "error"; error: ParseError }
+  : ballotResult.error.name
 ```
+
+A week or so after originally writing this article, while working on a new article about Node worker threads, I found out that Node is using this exact same approach for its `PromiseSettledResult`, it looks something like:
+
+```typescript
+interface PromiseFulfilledResult<T> {
+  status: "fulfilled";
+  value: T;
+}
+
+interface PromiseRejectedResult {
+  status: "rejected";
+  reason: any;
+}
+
+type PromiseSettledResult<T> = PromiseFulfilledResult<T> | PromiseRejectedResult;
+```
+
+Isn't that great? I feel more confident introducing this pattern to a team having an example of its usage in Node itself. Also, remember that I said using booleans instead of a _status_ string was causing some inconsistencies? It's good to see that Node also uses a _status_ string.
+
+I like the idea of introducing two interfaces, in our case they could be `ResultSuccess` and `ResultError` for example, but I also like the idea of not introducing too many types. So, I'll leave this example as is, but depending on the project, I may go with the additional interfaces in certain circumstances.
 
 That's it.

@@ -5,8 +5,16 @@
         <link>https://germandv.me</link>
         <description>Programming things</description>
         <language>en-us</language>
-        <lastBuildDate>2022-12-14T16:09:40-03:00</lastBuildDate>
+        <lastBuildDate>2022-12-15T12:08:07-03:00</lastBuildDate>
 
+        
+            <item>
+                <pubDate>November 29, 2022</pubDate>
+                <link>https://germandv.me/blog/utility-to-deal-with-secrets-in-go.html</link>
+                <guid>https://germandv.me/blog/utility-to-deal-with-secrets-in-go.html</guid>
+                <title>Utility To Deal With Secrets In Go</title>
+                <description>If your code deals, at one point or another, with secrets in plain text, it might be a good idea to prevent accidental logging of such sensitive information.</description>
+            </item>
         
             <item>
                 <pubDate>December 2, 2022</pubDate>
@@ -45,14 +53,6 @@
                 <link>https://germandv.me/blog/utility-to-deal-with-secrets-in-TS.html</link>
                 <guid>https://germandv.me/blog/utility-to-deal-with-secrets-in-TS.html</guid>
                 <title>Utility To Deal With Secrets In TS</title>
-                <description>If your code deals, at one point or another, with secrets in plain text, it might be a good idea to prevent accidental logging of such sensitive information.</description>
-            </item>
-        
-            <item>
-                <pubDate>November 29, 2022</pubDate>
-                <link>https://germandv.me/blog/utility-to-deal-with-secrets-in-go.html</link>
-                <guid>https://germandv.me/blog/utility-to-deal-with-secrets-in-go.html</guid>
-                <title>Utility To Deal With Secrets In Go</title>
                 <description>If your code deals, at one point or another, with secrets in plain text, it might be a good idea to prevent accidental logging of such sensitive information.</description>
             </item>
         
