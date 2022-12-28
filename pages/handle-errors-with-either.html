@@ -61,7 +61,6 @@ export default class Either&lt;L, R, Type extends &quot;Left&quot; | &quot;Right
   }
 
   // We use some default `never`s so that we don't have to provide
-  we don't have to provide
   // explicit types when creating Either instances.
   static right&lt;L = never, V = never&gt;(value: V): Either&lt;L, V&gt; {
     return new Either&lt;L, V, &quot;Left&quot; | &quot;Right&quot;&gt;(value, &quot;Right&quot;);
