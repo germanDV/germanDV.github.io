@@ -1,0 +1,677 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="keywords" content="programming, development, go, rust, typescript, javascript, react, fullstack">
+  <meta name="description" content="With an `Either` construct, we can treat errors as values and handle them in an elegant way.">
+  <title>germandv: Handle Errors With Either</title>
+  <link rel="shortcut icon" href="/blog/assets/favicon.ico" type="image/x-icon">
+  <link rel="stylesheet" href="/blog/assets/main.css">
+  <link rel="stylesheet" href="/blog/assets/github-dark.min.css">
+  <script src="/blog/assets/highlight.min.js"></script>
+</head>
+<body class="gruvbox">
+  <main>
+    <header class="entry">
+      <a href="/">&larr;</a>
+
+      
+        <div class="dates">
+          <time datetime="December 28, 2022"><b>Published</b> December 28, 2022</time>
+        </div>
+      
+    </header>
+
+    <h1>Handle Errors With Either</h1>
+
+    <div class="excerpt">
+      <p>With an `Either` construct, we can treat errors as values and handle them in an elegant way.</p>
+    </div>
+
+    <p>In <a href="/blog/a-result-type-for-typescript.html">A Result Type For Typescript</a>, we created a small abstraction so that we could handle errors in a way that does not require the typical throwing-and-catching pattern.</p>
+
+<p>We will take it a step further and have a construct that will also allow us to chain operations, and do so safely even if we run into an error at any point. Let&rsquo;s borrow some functional programming concepts to do it.</p>
+
+<p>We will create an <code>Either</code> class that will wrap a value. We will be able to apply functions to that value using a <code>map()</code> method, which will return another <code>Either</code>, that way, we can keep chaining operations.</p>
+
+<p><code>Either</code>, as its name indicates, can have one of two values, I&rsquo;m quite tempted to call them <em>error</em> and <em>value</em>, but I think these are known as <em>Left</em> and <em>Right</em> in the FP world, so let&rsquo;s stick to the convention. If we run into an error, we will represent it as a <em>Left</em> value; <em>Right</em> will represent the happy path.</p>
+
+<p>When <code>map</code>ping over an <code>Either</code>, if the value is a <em>Left</em>, it will do nothing and simply return the <code>Either</code> instance. If it is a <em>Right</em>, it will apply the provided function and return the output wrapped in an <code>Either</code>.</p>
+
+<p>Let&rsquo;s start writing some code:</p>
+
+<pre><code class="language-typescript">// either.ts
+
+// I went with the `&quot;Left&quot; | &quot;Right&quot;` intersection, but you could define an Enum if you prefer.
+export default class Either&lt;L, R, Type extends &quot;Left&quot; | &quot;Right&quot; = &quot;Right&quot;&gt; {
+  // We keep track of the type so it's easy to decide what to do in each scenario.
+  private readonly type: &quot;Left&quot; | &quot;Right&quot;
+
+  // If the Type is &quot;Left&quot;, the value must be of type L (typically an Error),
+  // otherwise it must be of type R.
+  private readonly value: Type extends &quot;Left&quot; ? L : R
+
+  // The constructor does not need to be private, we make it so because we have a static `from`
+  // method below to do the same job.
+  private constructor(value: Type extends &quot;Left&quot; ? L : R, type: &quot;Left&quot; | &quot;Right&quot; = &quot;Right&quot;) {
+    this.type = type
+    this.value = value;
+  }
+
+  // We use some default `never`s so that we don't have to provide
+  we don't have to provide
+  // explicit types when creating Either instances.
+  static right&lt;L = never, V = never&gt;(value: V): Either&lt;L, V&gt; {
+    return new Either&lt;L, V, &quot;Left&quot; | &quot;Right&quot;&gt;(value, &quot;Right&quot;);
+  };
+
+  static left&lt;V = never, R = never&gt;(value: V): Either&lt;V, R&gt; {
+    return new Either&lt;V, R, &quot;Left&quot; | &quot;Right&quot;&gt;(value, &quot;Left&quot;);
+  };
+
+  static from&lt;E = Error, V = any&gt;(value: V): Either&lt;E, V&gt; {
+    return new Either&lt;E, V, &quot;Right&quot;&gt;(value, &quot;Right&quot;)
+  }
+
+  private isLeft(): boolean {
+    return this.type === &quot;Left&quot;
+  }
+
+  // map applyes a function to the underlying value and
+  // returns a new Either.
+  map&lt;T&gt;(fn: (x: R) =&gt; T): Either&lt;L, T&gt; {
+    if (this.isLeft()) {
+      // the value is a `left` (an error), so we don't
+      // run the function.
+      return Either.left(this.value as L)
+    }
+    try {
+      // We run the function and wrap the output in an Either.
+      // We do it in a try/catch so that the caller does not need
+      // to worry about error handling. If we find an error, 
+      // we return a `left` instead of a `right`.
+      return Either.right(fn(this.value as R))
+    } catch (err) {
+      return Either.left(err as L)
+    }
+  }
+}
+</code></pre>
+
+<p>With the above code in place, we can create an <code>Either</code> and use the <code>map</code> method to operate on its value. It will also handle errors for us. Let&rsquo;s do some simple tests:</p>
+
+<pre><code class="language-typescript">// index.ts
+const duplicate = (n: number) =&gt; n*2
+const flipSign = (n: number) =&gt; -n
+const square = (n: number) =&gt; Math.pow(n, 2)
+
+const n = Either.from(4)
+  .map(duplicate)
+  .map(square)
+  .map(flipSign)
+
+console.log(n)
+</code></pre>
+
+<p>We instantiate Either using the <code>from</code> static method. To keep it simple, we do it with a number, but we could have more complex data here, as we&rsquo;ll see later.</p>
+
+<p>We apply three different operations on the number using <code>map</code>. At the end, we expect our value to be <strong>-64</strong> (Math.pow(4*2, 2) * -1). When we log it, we see something like:</p>
+
+<pre><code class="language-sh">Either { type: 'Right', value: -64 }
+</code></pre>
+
+<p>That&rsquo;s good, the <code>type</code> is <em>Right</em> because we have not run into any errors, and the <code>value</code> is the expected <strong>-64</strong>. We don&rsquo;t have a way of getting the underlying value out, it&rsquo;s a <code>private</code> property, we will deal with that soon, but let&rsquo;s see what would happen if we introduced an error.</p>
+
+<p>First, let&rsquo;s introduce a function that could throw an error. We will throw if we try to divide by zero.</p>
+
+<pre><code class="language-typescript">// Notice that `divider` is a function that takes the divisor and returns a
+// function to actually perform the division.
+// It provides a more readable approach to me, but it is not strictly required,
+// so no worries if you don't like it, you can do it differently.
+const divider = (divisor: number) =&gt; (dividend: number) =&gt; {
+  if (divisor === 0) throw new Error('cannot divide by zero')
+  return dividend / divisor
+}
+</code></pre>
+
+<p>Let&rsquo;s add a division, first with a non-zero divisor:</p>
+
+<pre><code class="language-typescript">const n = Either.from(4)
+  .map(duplicate)
+  .map(square)
+  .map(flipSign)
+  .map(divider(2))
+
+console.log(n) // -&gt; Either { type: 'Right', value: -32 }
+</code></pre>
+
+<p>Now let&rsquo;s try to divide by zero and see what our Either looks like;</p>
+
+<pre><code class="language-typescript">const n = Either.from(4)
+  .map(duplicate)
+  .map(square)
+  .map(flipSign)
+  .map(divider(0))
+
+console.log(n)
+</code></pre>
+
+<p>And the output:</p>
+
+<pre><code class="language-sh">Either {
+  type: 'Left',
+  value: Error: cannot divide by zero
+    ...stack trace
+}
+</code></pre>
+
+<p>That&rsquo;s good, we have a <code>type</code> <em>Left</em> and the <code>value</code> now holds the error.</p>
+
+<p>One of the nice things about <code>Either</code>, is that if we had run into an error earlier, subsequent calls to <code>map</code> would not cause any issues. They&rsquo;d just do nothing more than returning the <code>Either</code> with its <em>Left</em> value. In the example above, the last <code>map</code> call is the offending one, let&rsquo;s move it up and check that the results are the same.</p>
+
+<pre><code class="language-typescript">const n = Either.from(4)
+  .map(divider(0))
+  .map(duplicate)
+  .map(square)
+  .map(flipSign)
+
+console.log(n) // -&gt; Same output as before.
+</code></pre>
+
+<p>That&rsquo;s all fine, but we need a way to get the underlying value of an <code>Either</code>. We will introduce an <code>unwrap</code> method to do so. Let&rsquo;s add it to our <code>Either</code> class:</p>
+
+<pre><code class="language-typescript">// either.ts
+
+export default class Either&lt;L, R, Type extends &quot;Left&quot; | &quot;Right&quot; = &quot;Right&quot;&gt; {
+  ...
+
+  unwrap(): L | R {
+    if (this.isLeft()) {
+      return this.value as L
+    }
+    return this.value as R
+  }
+}
+</code></pre>
+
+<p>In this case, unwrap returns the value, whether that&rsquo;s a <em>Left</em> or a <em>Right</em>. There are many other ways to implement it, for example, you could choose to throw if it&rsquo;s a <em>Left</em>. But since I&rsquo;m not a fan of throwing, I&rsquo;d rather return whatever is there. The caller knows what a <em>Left</em> is, presumably an Error. I could check if the return value of <code>unwrap</code> is an <code>instanceof Error</code> and handle it that way. We&rsquo;ll build a more realistic example later and introduce some more methods, for now, the important part is that we can call <code>unwrap</code> to get the underlying value.</p>
+
+<p>Let&rsquo;s see it in action:</p>
+
+<pre><code class="language-typescript">// index.ts
+
+const n = Either.from(4)
+  .map(duplicate)
+  .map(square)
+  .map(flipSign)
+  .map(divider(2))
+
+// `result` is of type `number | Error`
+const result = n.unwrap()
+
+// This is one way we could handle the `Either` being an error.
+if (result instanceof Error) {
+  console.log(`[ERROR] ${result}`)
+} else {
+  // Thanks to the conditional check, result is of type `number` here.
+  console.log(`[OK] ${result}`)
+}
+</code></pre>
+
+<p>Try the code above dividing by zero too.</p>
+
+<p><code>unwrap</code> is nice. Although I&rsquo;m not totally sold on the idea of having to do the conditional check on the return value to know if we have an error, it&rsquo;s a useful method to have. But what if I don&rsquo;t care too much about handling the error and want a default value instead? We could of course use <code>unwrap</code> and assign the default value after checking if we have an error, but I think it would be more convenient to expose a method to handle that. Let&rsquo;s call it <code>or</code>:</p>
+
+<pre><code class="language-typescript">// either.ts
+
+export default class Either&lt;L, R, Type extends &quot;Left&quot; | &quot;Right&quot; = &quot;Right&quot;&gt; {
+  ...
+
+  // It takes its own generic type A in case it is not
+  // the same type as R.
+  or&lt;A&gt;(alt: A): R | A {
+    if (this.isLeft()) {
+      return alt
+    }
+    return this.value as R
+  }
+}
+</code></pre>
+
+<p>Imagine that in our example, we don&rsquo;t care about errors when doing operations on a number, and if any of them fail, we just want to return <code>NaN</code>. Then we can use our new <code>or</code> method:</p>
+
+<pre><code class="language-typescript">const n = Either.from(4)
+  .map(duplicate)
+  .map(square)
+  .map(flipSign)
+  .map(divider(0))
+
+// If there's an error (as in this case because we divide by zero),
+// `result` is going to be `NaN`, otherwise is going to be
+// whatever number our operations return.
+const result = n.or(NaN)
+console.log(result)
+</code></pre>
+
+<p><code>unwrap</code> and <code>or</code> provide some useful ways of getting the value out of <code>Either</code> once we are done with our operations. But there&rsquo;s one more method I&rsquo;d like to add, an <code>either</code> method, to which we will provide two functions and the decision on which one to run will be done based on the type of <code>Either</code> (meaning <em>Left</em> or <em>Right</em>). It could look something like this:</p>
+
+<pre><code class="language-typescript">// either.ts
+
+export default class Either&lt;L, R, Type extends &quot;Left&quot; | &quot;Right&quot; = &quot;Right&quot;&gt; {
+  ...
+
+  either(leftHandler: (value: L) =&gt; any, rightHandler: (value: R) =&gt; any) {
+    if (this.isLeft()) {
+      return leftHandler(this.value as L)
+    } else {
+      return rightHandler(this.value as R)
+    }
+  }
+}
+</code></pre>
+
+<p>And we would use it like this:</p>
+
+<pre><code class="language-typescript">const errHandler = (err: Error) =&gt; console.log(`[ERROR] ${err}`)
+const okHandler = (num: number) =&gt; console.log(`[OK] ${num}`)
+
+const n = Either.from(4)
+  .map(duplicate)
+  .map(square)
+  .map(flipSign)
+  .map(divider(2))
+
+n.either(errHandler, okHandler)
+</code></pre>
+
+<p>The code above outputs <code>[OK] -32</code>, and if you change it to divide by zero, you&rsquo;ll get <code>[ERROR] Error: cannot divide by zero</code>.</p>
+
+<p>With this, we have the basics of our <code>Either</code> monad (I think this is a monad, but who knows&hellip;), and we can move to a more realistic example.</p>
+
+<h2>Example</h2>
+
+<p>We have a csv file with notifications, social media stuff like &ldquo;someone liked your post&rdquo;. We will read the file, parse it, and present the number of unread notifications to the user.</p>
+
+<p>Firstly, let&rsquo;s create the csv file, I&rsquo;m going to call it <em>notificatins.csv</em>:</p>
+
+<pre><code>2022-12-01T05:33:34,123,liked your post,unread,https://site.com/notifications/3801
+2022-12-15T13:47:12,456,replied to your comment,read,https://site.com/notifications/1168
+2022-12-28T03:50:08,789,followed you,unread,https://site.com/notifications/88
+</code></pre>
+
+<p>Let&rsquo;s remove the contents of <code>index.ts</code> and start fresh:</p>
+
+<pre><code class="language-typescript">// index.ts
+
+import fs from &quot;node:fs/promises&quot;
+import Either from &quot;./either&quot;
+
+// Define a Message type that represents the parsed notification
+type Message = {
+  date: Date
+  from: {
+    id: number
+    username?: string
+  }
+  body: string
+  read: boolean
+  link: URL
+}
+
+async function main() {
+  const rawData = await fs.readFile(&quot;notifications.csv&quot;, &quot;utf-8&quot;)
+  // do something with rawData
+}
+main()
+</code></pre>
+
+<p>We will need a bunch of functions to operate on the data. These functions are not important for our purposes, so we will keep it simple and don&rsquo;t do all the validation we should for production code.</p>
+
+<pre><code class="language-typescript">// index.ts
+
+...
+
+function splitRows(data: string): string[] {
+  return data.split(&quot;\n&quot;)
+}
+
+function removeEmptyLines(rawMessages: string[]): string[] {
+  return rawMessages.filter(i =&gt; !!i)
+}
+
+function parse(rawMessages: string[]): Message[] {
+  return rawMessages.map(m =&gt; {
+    const fields = m.split(',')
+    return {
+      date: new Date(fields[0]),
+      from: { id: Number(fields[1]) },
+      body: fields[2],
+      read: fields[3] === &quot;read&quot; ? true : false,
+      link: new URL(fields[4]),
+    }
+  })
+}
+
+function unread(messages: Message[]): Message[] {
+  return messages.filter(m =&gt; !m.read)
+}
+
+function count(messages: Message[]): number {
+  return messages.length
+}
+</code></pre>
+
+<p>With those in place, we can create our <code>Either</code> and compute the count of unread messages:</p>
+
+<pre><code class="language-typescript">// index.ts
+
+...
+
+function errHandler() {
+  console.log(&quot;Sorry, could not parse notifications&quot;)
+}
+
+function okHandler(value: number) {
+  console.log(`You have ${value} unread messages`)
+}
+
+function parseData(rawData: string) {
+  const unreadMessagesCount = Either.from(rawData)
+    .map(splitRows)
+    .map(removeEmptyLines)
+    .map(parse)
+    .map(unread)
+    .map(count)
+
+  unreadMessagesCount.either(errHandler, okHandler)
+}
+
+async function main() {
+  const rawData = await fs.readFile(&quot;notifications.csv&quot;, &quot;utf-8&quot;)
+  parseData(main)
+}
+main()
+</code></pre>
+
+<p>The code above outputs <code>You have 2 unread messages</code>. Try messing up one of the rows in the csv file (like changing the URL to an invalid one) and you will see the error instead. Very nice, but what happens if we need to run async code?</p>
+
+<h2>Async</h2>
+
+<p>Some of the operations we wish to perform may be async, so let&rsquo;s think how we can deal with them.</p>
+
+<p>You may have noticed that our <code>Message</code> type has a <code>from.username</code> optional field that we haven&rsquo;t used so far. Here&rsquo;s the <code>Message</code> type as a reminder:</p>
+
+<pre><code class="language-typescript">type Message = {
+  date: Date
+  from: {
+    id: number
+    username?: string
+  }
+  body: string
+  read: boolean
+  link: URL
+}
+</code></pre>
+
+<p>The notifications in the csv have a user ID, so now we want to fetch the username for the given user ID. We will mock this as an async function as it would be an API call or a database read in real life. Let&rsquo;s create an <code>addUserData</code> function (as with the rest of the helper functions, let&rsquo;s not worry about the implementation, the only important thing is that it returns a Promise):</p>
+
+<pre><code class="language-typescript">// index.ts
+
+const sleep = (ms = 500) =&gt; new Promise(r =&gt; setTimeout(r, ms))
+
+const usersDB: Record&lt;number, string&gt; = {
+  123: 'Maria',
+  456: 'Bruce',
+  789: 'Isabella',
+}
+
+async function addUserData(messages: Message[]): Promise&lt;Message[]&gt; {
+  for (const m of messages) {
+    await sleep()
+    m.from.username = usersDB[m.from.id]
+  } 
+  return messages
+}
+</code></pre>
+
+<p>We no longer want to compute the count of unread messages, we want to show the notifications with the username of the sender. Let&rsquo;s give it a try with the tools we have so far:</p>
+
+<pre><code class="language-typescript">// index.ts
+
+// Either is now wrapping a `Promise&lt;Message[]&gt;`.
+async function okHandlerAsync(promised: Promise&lt;Message[]&gt;) {
+  const messages = await promised
+  messages.forEach(m =&gt; console.log(m))
+}
+
+function parseDataAsync(rawData: string) {
+  const unreadMessages = Either.from(rawData)
+    .map(splitRows)
+    .map(removeEmptyLines)
+    .map(parse)
+    .map(unread)
+    .map(addUserData) // addUserData is async
+
+  unreadMessages.either(errHandler, okHandlerAsync)
+}
+
+async function main() {
+  const rawData = await fs.readFile(&quot;notifications.csv&quot;, &quot;utf-8&quot;)
+  // parseData(rawData)
+  parseDataAsync(rawData)
+}
+</code></pre>
+
+<p>This works, but we have to be aware that <code>Either</code> is now wrapping a <code>Promise</code> as its <em>Right</em> value, this means that our <em>okHandler</em> needs to await the Promise to access the value, we created an <code>okHandlerAsync</code> for that purpose.</p>
+
+<p>It also means that we loose the ability to keep chaining <code>map</code> calls, unless the operations expect a Promise as an argument. Which makes it kind of inconvenient to work with. We can improve it by introducing a <code>mapAsync</code> method on <code>Either</code>.</p>
+
+<h2>Map Async</h2>
+
+<p>Let&rsquo;s add another method to <code>Either</code>:</p>
+
+<pre><code class="language-typescript">// either.ts
+
+export default class Either&lt;L, R, Type extends &quot;Left&quot; | &quot;Right&quot; = &quot;Right&quot;&gt; {
+  ...
+
+  async mapAsync&lt;T&gt;(fn: (x: R) =&gt; Promise&lt;T&gt;): Promise&lt;Either&lt;L, T&gt;&gt; {
+    if (this.isLeft()) {
+      return Either.left(this.value as L)
+    }
+    try {
+      const newVal = await fn(this.value as R)
+      return Either.right(newVal)
+    } catch (err) {
+      return Either.left(err as L)
+    }
+  }
+}
+</code></pre>
+
+<p>Instead of wrapping the <em>Right</em> value in a Promise, <code>mapAsync</code> wraps the entire <code>Either</code> instance. This is better because we can <code>await</code> it and still get an <code>Either</code> back, which means we can keep <code>map</code>ping operations. We cannot chain them, but we can introduce intermediary variables.</p>
+
+<p>Let&rsquo;s first redo the example above where we wanted to print the messages with username:</p>
+
+<pre><code class="language-typescript">// index.ts
+
+...
+
+async function parseDataUsingMapAsync(rawData: string) {
+  // Since the last operation is a `mapAsync`, we can await the
+  // whole chain to get back the `Either`.
+  const unreadMessages = await Either.from(rawData)
+    .map(splitRows)
+    .map(removeEmptyLines)
+    .map(parse)
+    .map(unread)
+    .mapAsync(addUserData)
+
+  // We're inlining the okHandler
+  unreadMessages.either(errHandler, (messages: Message[]) =&gt; {
+    messages.forEach(m =&gt; console.log(m))
+  })
+}
+
+async function main() {
+  const rawData = await fs.readFile(&quot;notifications.csv&quot;, &quot;utf-8&quot;)
+  // parseData(rawData)
+  // parseDataAsync(rawData)
+  parseDataUsingMapAsync(rawData)
+}
+main()
+</code></pre>
+
+<p>This is nicer, and we can even continue our operations after a <code>mapAsync</code>, since we get back an <code>Either</code> if we await it. Let&rsquo;s go back to showing the number of unread notifications:</p>
+
+<pre><code class="language-typescript">async function parseDataUsingMapAsync(rawData: string) {
+  const unreadMessages = await Either.from(rawData)
+    .map(splitRows)
+    .map(removeEmptyLines)
+    .map(parse)
+    .map(unread)
+    .mapAsync(addUserData)
+
+  // We can call `.map` again.
+  // The only difference is that we cannot chain it right
+  // after `mapAsync` because it returns a Promise, not an Either.
+  const unreadMessagesCount = unreadMessages.map(count)
+
+  // This okHandler is the first one we wrote, the one that expects
+  // a number for argument.
+  unreadMessagesCount.either(errHandler, okHandler)
+}
+</code></pre>
+
+<p>The code above prints <code>You have 2 unread messages</code> as expected.</p>
+
+<p>Here are the entire contents of <code>either.ts</code>:</p>
+
+<pre><code class="language-typescript">export default class Either&lt;L, R, Type extends &quot;Left&quot; | &quot;Right&quot; = &quot;Right&quot;&gt; {
+  private readonly type: &quot;Left&quot; | &quot;Right&quot;
+  private readonly value: Type extends &quot;Left&quot; ? L : R
+
+  private constructor(value: Type extends &quot;Left&quot; ? L : R, type: &quot;Left&quot; | &quot;Right&quot; = &quot;Right&quot;) {
+    this.type = type
+    this.value = value;
+  }
+
+  static right&lt;L = never, V = never&gt;(value: V): Either&lt;L, V&gt; {
+    return new Either&lt;L, V, &quot;Left&quot; | &quot;Right&quot;&gt;(value, &quot;Right&quot;);
+  };
+
+  static left&lt;V = never, R = never&gt;(value: V): Either&lt;V, R&gt; {
+    return new Either&lt;V, R, &quot;Left&quot; | &quot;Right&quot;&gt;(value, &quot;Left&quot;);
+  };
+
+  static from&lt;E = Error, V = any&gt;(value: V): Either&lt;E, V&gt; {
+    return new Either&lt;E, V, &quot;Right&quot;&gt;(value, &quot;Right&quot;)
+  }
+
+  private isLeft(): boolean {
+    return this.type === &quot;Left&quot;
+  }
+
+  map&lt;T&gt;(fn: (x: R) =&gt; T): Either&lt;L, T&gt; {
+    if (this.isLeft()) {
+      return Either.left(this.value as L)
+    }
+    try {
+      return Either.right(fn(this.value as R))
+    } catch (err) {
+      return Either.left(err as L)
+    }
+  }
+
+  async mapAsync&lt;T&gt;(fn: (x: R) =&gt; Promise&lt;T&gt;): Promise&lt;Either&lt;L, T&gt;&gt; {
+    if (this.isLeft()) {
+      return Either.left(this.value as L)
+    }
+    try {
+      const newVal = await fn(this.value as R)
+      return Either.right(newVal)
+    } catch (err) {
+      return Either.left(err as L)
+    }
+  }
+
+  unwrap(): L | R {
+    if (this.isLeft()) {
+      return this.value as L
+    }
+    return this.value as R
+  }
+
+  or&lt;A&gt;(alt: A): R | A {
+    if (this.isLeft()) {
+      return alt
+    }
+    return this.value as R
+  }
+
+  either(leftHandler: (value: L) =&gt; any, rightHandler: (value: R) =&gt; any) {
+    if (this.isLeft()) {
+      return leftHandler(this.value as L)
+    } else {
+      return rightHandler(this.value as R)
+    }
+  }
+}
+</code></pre>
+
+<p>And that&rsquo;s it, our <code>Either</code> monad to handle fallible operations in an elegant, and hopefully readable and clear way.</p>
+
+  </main>
+  
+  <footer>
+      <nav>
+          <div>
+              <a href="/">HOME</a>
+              <a href="/blog/about.html">ABOUT</a>
+              <a href="/feed">RSS</a>
+          </div>
+          <div>
+              <img
+                src="/blog/assets/gruvbox.png"
+                alt="Gruvbox colorscheme"
+                title="Gruvbox"
+                width="125px"
+                onclick="changeTheme('gruvbox');"
+              >
+              <img
+                src="/blog/assets/nord.png"
+                alt="Nord colorscheme"
+                title="Nord"
+                width="125px"
+                onclick="changeTheme('nord');"
+              >
+              <img
+                src="/blog/assets/light.png"
+                alt="Light colorscheme"
+                title="Light"
+                width="125px"
+                onclick="changeTheme('onelight');"
+              >
+          </div>
+      </nav>
+  </footer>
+  <script>
+    function setTheme(name) {
+        window.document.querySelector('body').className = name;
+    }
+    function changeTheme(name) {
+        window.localStorage.setItem('colorscheme', name);
+        setTheme(name);
+    }
+    window.onload = () => {
+        const stored = window.localStorage.getItem('colorscheme');
+        const theme = ['gruvbox', 'nord', 'onelight'].includes(stored) ? stored : 'gruvbox';
+        setTheme(theme);
+    };
+  </script>
+
+  <script>hljs.highlightAll();</script>
+</body>
+</html>

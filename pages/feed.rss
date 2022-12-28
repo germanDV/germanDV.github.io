@@ -5,8 +5,40 @@
         <link>https://germandv.me</link>
         <description>Programming things</description>
         <language>en-us</language>
-        <lastBuildDate>2022-12-15T12:08:07-03:00</lastBuildDate>
+        <lastBuildDate>2022-12-28T15:14:30-03:00</lastBuildDate>
 
+        
+            <item>
+                <pubDate>December 7, 2022</pubDate>
+                <link>https://germandv.me/blog/basic-auth-and-the-browser-login-form.html</link>
+                <guid>https://germandv.me/blog/basic-auth-and-the-browser-login-form.html</guid>
+                <title>Basic Auth And The Browser Login Form</title>
+                <description>Browsers already have a login form that we can leverage for simple authentication requirements. Let's explore basic auth.</description>
+            </item>
+        
+            <item>
+                <pubDate>December 14, 2022</pubDate>
+                <link>https://germandv.me/blog/go-threadpool.html</link>
+                <guid>https://germandv.me/blog/go-threadpool.html</guid>
+                <title>Go Threadpool</title>
+                <description>In Go, it's generally fine to run hundreds of thousands (even millions) of goroutines. However, you may need to limit them. One of the ways to do so is by implementing a pool of workers or threadpool.</description>
+            </item>
+        
+            <item>
+                <pubDate>December 28, 2022</pubDate>
+                <link>https://germandv.me/blog/handle-errors-with-either.html</link>
+                <guid>https://germandv.me/blog/handle-errors-with-either.html</guid>
+                <title>Handle Errors With Either</title>
+                <description>With an `Either` construct, we can treat errors as values and handle them in an elegant way.</description>
+            </item>
+        
+            <item>
+                <pubDate>November 30, 2022</pubDate>
+                <link>https://germandv.me/blog/utility-to-deal-with-secrets-in-TS.html</link>
+                <guid>https://germandv.me/blog/utility-to-deal-with-secrets-in-TS.html</guid>
+                <title>Utility To Deal With Secrets In TS</title>
+                <description>If your code deals, at one point or another, with secrets in plain text, it might be a good idea to prevent accidental logging of such sensitive information.</description>
+            </item>
         
             <item>
                 <pubDate>November 29, 2022</pubDate>
@@ -30,30 +62,6 @@
                 <guid>https://germandv.me/blog/a-result-type-for-typescript.html</guid>
                 <title>A Result Type For Typescript</title>
                 <description>a Result type is an abstraction to communicate the outcome of fallible operations. In the JS world, we are probably more used to throwing errors, but this approach has its advantages, especially in message-based communication.</description>
-            </item>
-        
-            <item>
-                <pubDate>December 7, 2022</pubDate>
-                <link>https://germandv.me/blog/basic-auth-and-the-browser-login-form.html</link>
-                <guid>https://germandv.me/blog/basic-auth-and-the-browser-login-form.html</guid>
-                <title>Basic Auth And The Browser Login Form</title>
-                <description>Browsers already have a login form that we can leverage for simple authentication requirements. Let's explore basic auth.</description>
-            </item>
-        
-            <item>
-                <pubDate>December 14, 2022</pubDate>
-                <link>https://germandv.me/blog/go-threadpool.html</link>
-                <guid>https://germandv.me/blog/go-threadpool.html</guid>
-                <title>Go Threadpool</title>
-                <description>In Go, it's generally fine to run hundreds of thousands (even millions) of goroutines. However, you may need to limit them. One of the ways to do so is by implementing a pool of workers or threadpool.</description>
-            </item>
-        
-            <item>
-                <pubDate>November 30, 2022</pubDate>
-                <link>https://germandv.me/blog/utility-to-deal-with-secrets-in-TS.html</link>
-                <guid>https://germandv.me/blog/utility-to-deal-with-secrets-in-TS.html</guid>
-                <title>Utility To Deal With Secrets In TS</title>
-                <description>If your code deals, at one point or another, with secrets in plain text, it might be a good idea to prevent accidental logging of such sensitive information.</description>
             </item>
         
 
