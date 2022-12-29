@@ -1,0 +1,378 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="keywords" content="programming, development, go, rust, typescript, javascript, react, fullstack">
+  <meta name="description" content="Let&#39;s test some Javascript code without using any libraries, just a couple of JS files, no package.json, no npm.">
+  <title>germandv: Node Tests Without Libraries</title>
+  <link rel="shortcut icon" href="/blog/assets/favicon.ico" type="image/x-icon">
+  <link rel="stylesheet" href="/blog/assets/main.css">
+  <link rel="stylesheet" href="/blog/assets/github-dark.min.css">
+  <script src="/blog/assets/highlight.min.js"></script>
+</head>
+<body class="gruvbox">
+  <main>
+    <header class="entry">
+      <a href="/">&larr;</a>
+
+      
+        <div class="dates">
+          <time datetime="December 29, 2022"><b>Published</b> December 29, 2022</time>
+        </div>
+      
+    </header>
+
+    <h1>Node Tests Without Libraries</h1>
+
+    <div class="excerpt">
+      <p>Let&#39;s test some Javascript code without using any libraries, just a couple of JS files, no package.json, no npm.</p>
+    </div>
+
+    <p>We will be using the new <em>test runner</em> module from Node, so make sure to have a current version installed. I&rsquo;m on the latest LTS at the time of this writing: <strong>18.12.1</strong>. The <em>test runner</em> module is experimental (stability: 1). Which means:</p>
+
+<blockquote>
+<p>Stability: 1 - Experimental. The feature is not subject to semantic versioning rules. Non-backward compatible changes or removal may occur in any future release. Use of the feature is not recommended in production environments.</p>
+</blockquote>
+
+<p>Therefore, you are probably better off sticking to Jest, or whatever testing library you are using, for production, for now.</p>
+
+<p>Because we won&rsquo;t be using any libraries, and we won&rsquo;t be using npm (nor npx) at all, we won&rsquo;t be using Typescript either, we want our script and tests to be run just with <code>node</code>.</p>
+
+<h2>The Feature</h2>
+
+<p>In order not to write tests that assert that <code>2 + 2 === 4</code>, let&rsquo;s create a more or less useful function to test. We will create a <code>parseRoute</code> function that given a template and an actual route will extract variables define in the template from the route. So, for example, given the template <code>/user/:id</code> and the route <code>/user/10</code>, <code>parseRoute</code> should return something like <code>{ id: 10 }</code>. And just for fun, let&rsquo;s also parse the query string, if it exists.</p>
+
+<p>We cannot use Typescript, but that doesn&rsquo;t mean we cannot type our program, we will be using <a href="https://jsdoc.app/">JSDoc</a> for that.</p>
+
+<p>Let&rsquo;s get started. Create a file called <code>index.mjs</code>, I&rsquo;m using the <em>.mjs</em> extension so that we can use <strong>ES Modules</strong> for our imports and exports.</p>
+
+<pre><code class="language-javascript">// index.mjs
+
+/**
+ * An object containing the variables in a path,
+ * including the query string params, if any
+ * @typedef {Object} Path
+ * @property {string} route The original route
+ * @property {Object&lt;string, string&gt;} params The dynamic params from the template
+ * @property {Object&lt;string, string&gt;} query The query string params
+ */
+
+/**
+ * Parses a route using a template that can include variables.
+ * Variables start with `:`, for example `/user/:id`.
+ * If the route does not match the template, it returns null.
+ *
+ * Each variable in the template becomes a key in a `params` object
+ * in the returned Path object.
+ *
+ * The query string is also parsed and key values are stored in a `query` key
+ * in the returned Path object.
+ *
+ * @param {string} template - The template to match the route against.
+ * @param {string} route - The actual route to parse.
+ * @returns {Path|null} The parsed route.
+ */
+export function parseRoute(template, route) {
+  if (!template || !route) {
+    throw new Error(&quot;template and route params are required&quot;)
+  }
+
+  /** @type {Object&lt;string, string&gt;} */
+  const query = {}
+
+  // Check if route includes a query string.
+  if (route.includes(&quot;?&quot;)) {
+    const qs = route.substring(route.indexOf(&quot;?&quot;))
+    route = route.substring(0, route.indexOf(&quot;?&quot;))
+    qs.replace(
+      new RegExp(&quot;([^?=&amp;]+)(=([^&amp;]*))?&quot;, &quot;g&quot;),
+      (_, k, __, v) =&gt; (query[k] = v)
+    )
+  }
+
+  const templateParts = template.split(&quot;/&quot;)
+  const routeParts = route.split(&quot;/&quot;)
+  if (templateParts.length !== routeParts.length) return null
+
+  /** @type Path */
+  const path = {
+    route, // add the original route to the `path` for convenience.
+    query, // add the parsed query string.
+    params: {}, // an empty object to collect variables from the template.
+  }
+
+  for (let i = 0; i &lt; templateParts.length; i++) {
+    // This part of the template is a variable, add it to the `path`
+    // object to be returned.
+    if (templateParts[i].startsWith(&quot;:&quot;)) {
+      path.params[templateParts[i].substring(1)] = routeParts[i]
+      continue
+    }
+
+    // If template part is not a variable and it does not match the
+    // corresponding route part, then the route does not match the
+    // template and we will return `null`.
+    if (!templateParts[i].startsWith(&quot;:&quot;) &amp;&amp; templateParts[i] !== routeParts[i]) {
+      return null
+    }
+  }
+
+  return path
+}
+
+/**
+ * Just to show how to test async functions,
+ * let's have a promisified version of `parseRoute`.
+ *
+ * @param {string} template - The template to match the route against.
+ * @param {string} route - The actual route to parse.
+ * @returns {Promise&lt;Path|null&gt;} The parsed route.
+ */
+export  function parseRouteAsync(template, route) {
+  return new Promise((resolve, reject) =&gt; {
+    try {
+      const path = parseRoute(template, route)
+      if (!path) {
+        reject(new Error(&quot;route could not be matched to template.&quot;))
+      } else {
+        resolve(path)
+      }
+    } catch (err) {
+      reject(err)
+    }
+  })
+}
+</code></pre>
+
+<p>Some things worth noticing:</p>
+
+<ul>
+<li>We have defined our own <code>Path</code> type at the top of the file.</li>
+<li>We use the comment <code>/** @type {Object&lt;string, string&gt;} */</code> to annotate the type of a variable.</li>
+<li>In some cases the function throws an error and in others it returns <code>null</code>, this is so that we have more things to test.</li>
+<li>If you want to enable type checks for the file on your text editor, you can add a <code>//@ts-check</code> comment at the top of the file.</li>
+<li>Another way to type check the file would be running <code>tsc --allowJs --checkJs --noEmit --target ESNext index.mjs</code> (assuming you have typescript installed on your system).</li>
+<li>If you think <code>parseRouteAsync</code> makes no sense, that&rsquo;s right, it&rsquo;s just there so that we can test promises.</li>
+</ul>
+
+<p><br/></p>
+
+<h2>The Tests</h2>
+
+<p>Let&rsquo;s now create a test file, I like calling test files <code>[whatever].test.mjs</code>, and putting them next to the file they are testing. But there are many approaches in terms of naming and placement, so you do you. My only advice is to follow one of the patterns that node is aware of, so that it can pick up test files automatically. <a href="https://nodejs.org/dist/latest-v18.x/docs/api/test.html#test-runner-execution-model">Check the test runner execution model here</a>.</p>
+
+<pre><code class="language-javascript">// index.test.mjs
+
+import { describe, it, test } from &quot;node:test&quot;
+import assert from &quot;node:assert/strict&quot;
+import { parseRoute, parseRouteAsync } from &quot;./index.mjs&quot;
+
+describe(&quot;parseRoute&quot;, () =&gt; {
+  it(&quot;should throw when template is empty&quot;, () =&gt; {
+    assert.throws(() =&gt; parseRoute(&quot;&quot;, &quot;/post/123&quot;), Error)
+  })
+
+  it(&quot;should throw when route is empty&quot;, () =&gt; {
+    assert.throws(() =&gt; parseRoute(&quot;/user/:id&quot;, &quot;&quot;), Error)
+  })
+
+  it(&quot;should return null when route does not match template&quot;, () =&gt; {
+    const got = parseRoute(&quot;/user/:id&quot;, &quot;/post/123&quot;)
+    assert.equal(got, null)
+  })
+
+  it(&quot;should correctly parse a route without variables in the template&quot;, () =&gt; {
+    const want = { route: &quot;/about/contact&quot;, params: {}, query: {} }
+    const got = parseRoute(&quot;/about/contact&quot;, &quot;/about/contact&quot;)
+    assert.deepEqual(got, want)
+  })
+
+  it(&quot;should return null if trailing slashes do not match in route and template&quot;, () =&gt; {
+    const got = parseRoute(&quot;/info&quot;, &quot;/info/&quot;)
+    assert.equal(got, null)
+  })
+
+  it(&quot;should collect variables according to template&quot;, () =&gt; {
+    const want = {
+      route: &quot;/user/99/post/458&quot;,
+      params: { userId: &quot;99&quot;, postId: &quot;458&quot; },
+      query: {},
+    }
+
+    const got = parseRoute(&quot;/user/:userId/post/:postId&quot;, &quot;/user/99/post/458&quot;)
+    assert.deepEqual(got, want)
+  })
+
+  it(&quot;should parse variables and query string&quot;, () =&gt; {
+    const want = {
+      route: &quot;/user/99&quot;,
+      params: { id: &quot;99&quot; },
+      query: { lang: &quot;it&quot; },
+    }
+
+    const got = parseRoute(&quot;/user/:id&quot;, &quot;/user/99?lang=it&quot;)
+    assert.deepEqual(got, want)
+  })
+
+  it(&quot;should parse multiple variables and query string params&quot;, () =&gt; {
+    const want = {
+      route: &quot;/user/99/post/458&quot;,
+      params: { userId: &quot;99&quot;, postId: &quot;458&quot; },
+      query: { lang: &quot;it&quot;, format: &quot;json&quot; },
+    }
+
+    const got = parseRoute(
+      &quot;/user/:userId/post/:postId&quot;,
+      &quot;/user/99/post/458?lang=it&amp;format=json&quot;,
+    )
+
+    assert.deepEqual(got, want)
+  })
+})
+</code></pre>
+
+<p>Some things worth noticing:</p>
+
+<ul>
+<li>We <code>import assert from &quot;node:assert/strict&quot;</code> so that we always use the strict version and can write <code>assert.equal</code> instead of <code>assert.strictEqual</code>.</li>
+<li>We could use the <code>test</code> that we import from <code>node:test</code> to replace all the <code>describe</code>s and <code>it</code>s. But for familiarity with other testing libraries, I&rsquo;m using <code>describe</code> and <code>it</code> for this first part, we&rsquo;ll use <code>test</code> later.</li>
+<li>I haven&rsquo;t found a good use case for the <code>before</code>, <code>beforeEach</code>, <code>after</code> and <code>afterEach</code> hooks here, but they are available, check the <a href="https://nodejs.org/dist/latest-v18.x/docs/api/test.html">docs</a> for further details.</li>
+</ul>
+
+<p>To run the tests, we can simply run <code>node --test</code>, the results are reported in <a href="https://testanything.org/">TAP</a> format. When you run it, you should see something like:</p>
+
+<pre><code class="language-sh">AP version 13
+# Subtest: index.test.mjs
+ok 1 - index.test.mjs
+  ---
+  duration_ms: 49.6767
+  ...
+1..1
+# tests 1
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 53.215802
+</code></pre>
+
+<p>Make one of the tests fail and check the report.</p>
+
+<h2>Testing Async</h2>
+
+<p>Let&rsquo;s add another subtest to test our <code>parseRouteAsync</code> function. The <a href="https://nodejs.org/dist/latest-v18.x/docs/api/assert.html">assert</a> module has utilities to test Promise rejections; however, I could not make it work. Maybe that&rsquo;s because the test runner is still experimental and doesn&rsquo;t handle async functions well yet, or, more likely, I&rsquo;m an idiot making some silly mistake.</p>
+
+<p>In any case, I thought it would be a good idea to show a workaround, because sometimes a workaround is the best we can do, at least temporarily, when time is of the essence. Hence, we will create a small helper function to help us test if a promise rejects.</p>
+
+<pre><code>// index.test.mjs
+
+...
+
+describe(&quot;parseRoute&quot;, () =&gt; {
+  ...
+})
+
+test(&quot;parseRouteAsync&quot;, async (t) =&gt; {
+  await t.test(&quot;should collect variables according to template&quot;, async () =&gt; {
+    const want = {
+      route: &quot;/user/77/post/919&quot;,
+      params: { userId: &quot;77&quot;, postId: &quot;919&quot; },
+      query: {},
+    }
+
+    const got = await parseRouteAsync(&quot;/user/:userId/post/:postId&quot;, &quot;/user/77/post/919&quot;)
+    assert.deepEqual(got, want)
+  })
+
+  await t.test(&quot;should reject when inputs are empty&quot;, async () =&gt; {
+    const rejected = await rejects(parseRouteAsync(&quot;&quot;, &quot;&quot;))
+    assert.ok(rejected, &quot;promise did not reject&quot;)
+  })
+})
+
+/**
+ * Helper function to check if a promise rejects with an Error.
+ * @param {Promise} promise - The promise to check.
+ * @returns {Promise&lt;boolean&gt;} Whether the promise rejected or not.
+ */
+async function rejects(promise) {
+    let rejectsWithError = false
+    try {
+      await promise
+    } catch (err) {
+      if (err instanceof Error) {
+        rejectsWithError = true
+      }
+    }
+    return rejectsWithError
+}
+</code></pre>
+
+<p>Some things worth noticing:</p>
+
+<ul>
+<li>We are using <code>test</code> instead of <code>describe</code> and <code>it</code>. When using <code>test</code>, the callback receives a <code>t</code> argument that we can use to call subtests, call hooks like <code>beforeEach</code>, and more. So, generally speaking, I would prefer <code>test</code> over <code>describe</code> and <code>it</code>.</li>
+<li>When using <code>test</code>, it is important to <strong>always <code>await</code> subtests, even if they are not async</strong>, from the docs: &ldquo;<em>This is necessary because parent tests do not wait for their subtests to complete. Any subtests that are still outstanding when their parent finishes are cancelled and treated as failures.</em>&rdquo;.</li>
+</ul>
+
+<p><br /></p>
+
+<h2>Conclusion</h2>
+
+<p>Other than the <code>assert.rejects</code> fiasco (which is more than likely on me), I like that node provides a native test runner. But remember that it&rsquo;s unstable and not production-ready yet.</p>
+
+  </main>
+  
+  <footer>
+      <nav>
+          <div>
+              <a href="/">HOME</a>
+              <a href="/blog/about.html">ABOUT</a>
+              <a href="/feed">RSS</a>
+          </div>
+          <div>
+              <img
+                src="/blog/assets/gruvbox.png"
+                alt="Gruvbox colorscheme"
+                title="Gruvbox"
+                width="125px"
+                onclick="changeTheme('gruvbox');"
+              >
+              <img
+                src="/blog/assets/nord.png"
+                alt="Nord colorscheme"
+                title="Nord"
+                width="125px"
+                onclick="changeTheme('nord');"
+              >
+              <img
+                src="/blog/assets/light.png"
+                alt="Light colorscheme"
+                title="Light"
+                width="125px"
+                onclick="changeTheme('onelight');"
+              >
+          </div>
+      </nav>
+  </footer>
+  <script>
+    function setTheme(name) {
+        window.document.querySelector('body').className = name;
+    }
+    function changeTheme(name) {
+        window.localStorage.setItem('colorscheme', name);
+        setTheme(name);
+    }
+    window.onload = () => {
+        const stored = window.localStorage.getItem('colorscheme');
+        const theme = ['gruvbox', 'nord', 'onelight'].includes(stored) ? stored : 'gruvbox';
+        setTheme(theme);
+    };
+  </script>
+
+  <script>hljs.highlightAll();</script>
+</body>
+</html>
