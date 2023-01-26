@@ -1,0 +1,292 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="keywords" content="programming, development, go, rust, typescript, javascript, react, fullstack">
+  <meta name="description" content="While looking for an excuse to use bitwise operators and do some bit manipulation, I thought it would be nice to see how we could model permissions and roles using bits.">
+  <title>germandv: Using Bits To Model Permissions</title>
+  <link rel="shortcut icon" href="/blog/assets/favicon.ico" type="image/x-icon">
+  <link rel="stylesheet" href="/blog/assets/main.css">
+  <link rel="stylesheet" href="/blog/assets/github-dark.min.css">
+  <script src="/blog/assets/highlight.min.js"></script>
+</head>
+<body class="gruvbox">
+  <main>
+    <header class="entry">
+      <a href="/">&larr;</a>
+
+      
+        <div class="dates">
+          <time datetime="January 26, 2023"><b>Published</b> January 26, 2023</time>
+        </div>
+      
+    </header>
+
+    <h1>Using Bits To Model Permissions</h1>
+
+    <div class="excerpt">
+      <p>While looking for an excuse to use bitwise operators and do some bit manipulation, I thought it would be nice to see how we could model permissions and roles using bits.</p>
+    </div>
+
+    <p>The first thing to keep in mind is that we want a somewhat complex permissions system.
+And by that I mean that <em>higher level</em> permissions do not necessarily include the <em>lower level</em> ones.
+For example, if we have <em>user</em> and <em>admin</em> roles, generally, the <em>admin</em> would have all the <em>user</em>
+permissions and more.</p>
+
+<p>The reason we want to avoid this, is that for such a simple scenario, it would
+be enough to assign a higher number to the <em>higher level</em> permission and then we
+just need to check that the number of the actual permission is greater than or
+equal to the minimum required permission to perform a given action.</p>
+
+<p>We could of course model such scenario with bits, but it&rsquo;s more fun when the
+system is a bit more complex. So, we will build a model in which permissions are
+independent of each other, you&rsquo;ll see what I mean in a minute.</p>
+
+<p>In the context of an accounting software, let&rsquo;s imagine there are four possible
+actions:</p>
+
+<ul>
+<li>issue_invoice</li>
+<li>process_collection</li>
+<li>release_payment</li>
+<li>write_entry</li>
+</ul>
+
+<p>Based on the actions above, we will create five permissions:</p>
+
+<ul>
+<li><code>NONE</code> -&gt; no permissions at all, can&rsquo;t perform any actions.</li>
+<li><code>INVOICER</code> -&gt; permission to <strong>issue_invoice</strong>, can issue invoices to customers.</li>
+<li><code>COLLECTOR</code> -&gt; permission to <strong>process_collection</strong>, can process payments from customers.</li>
+<li><code>PAYER</code> -&gt; permission to <strong>release_payment</strong>, can make payments to vendors.</li>
+<li><code>COOK</code> -&gt; permission to <strong>write_entry</strong>, can (over)write journal entries.</li>
+</ul>
+
+<p>In this case, since we have 4 actions, we will use 4 bits to represent a
+permission. On top of permissions, we will have roles. A role is simply a group
+of one or more permissions. We will see this in more detail shortly, but as an example,
+if a role had permissions to <strong>release_payment</strong> and <strong>process_collection</strong>, it
+would look like:</p>
+
+<pre><code>  0 1 1 0
+  | | | |
+  | | | |__ it does not have permission to `issue_invoice`
+  | | |
+  | | |__ it has permission to `process_collection`
+  | |
+  | |__ it has permission to `release_payment`
+  |
+  |__ it does not have permission to `write_entry`
+</code></pre>
+
+<p>As you probably suspected, <code>0</code> means no permission and <code>1</code> means go ahead.
+Which bit of the 4 we assigned to each of the permissions/actions
+has no importance, I just placed them in the same order I had listed them
+before (hopefully).</p>
+
+<p>Let&rsquo;s have an enum where we can hold the permissions. As a reminder, in JS, we can type binary
+numbers prepending them with <code>0b</code>.</p>
+
+<p><em>By the way, instead of a typescript <code>Enum</code>, I will be using a plain object,
+just to show an alternative.</em></p>
+
+<pre><code class="language-typescript">// permission.ts
+
+export const Permissions = {
+  NONE: 0b0000,
+  INVOICER: 0b0001,
+  COLLECTOR: 0b0010,
+  PAYER: 0b0100,
+  COOK: 0b1000,
+} as const
+
+// We can extract the keys of the Permissions object into their own type.
+// we won't be using it here, but could be useful in other cases
+// type PermissionKeys = keyof typeof Permissions
+
+// Extract the values of the Permissions object into their own type.
+type Values&lt;T&gt; = T[keyof T]
+export type Permission = Values&lt;typeof Permissions&gt;
+</code></pre>
+
+<p>We have defined our <code>Permissions</code>, we could also have a type for <code>Role</code>. A
+<code>Role</code> is just going to be an aggregation of <code>Permissions</code>, which means that
+it will just be a number, but still I think that creating a type for it is going
+to make thing clearer and better express intent, so let&rsquo;s do it, and let&rsquo;s also
+export a function to facilitate the creation of <code>Role</code>s.</p>
+
+<pre><code class="language-typescript">// permission.ts
+
+...
+
+export type Role = number
+
+
+// The single `|` character is the bitwise &quot;or&quot; operator.
+//     it returns 1 if any of the argument is 1,
+//     it returns 0 otherwise.
+//
+// If we &quot;bitwise or&quot; Permissions.COLLECTOR and Permissions.PAYER, we get
+//     - Permissions.COLLECTOR  -&gt;  0 0 1 0
+//     - Permissions.PAYER      -&gt;  0 1 0 0
+//     - Result (bitwise or)    -&gt;  0 1 1 0
+export function createRole(...permissions: Permission[]): Role {
+  return permissions.reduce((acc: number, p: number) =&gt; acc | p, 0)
+}
+</code></pre>
+
+<p>The final piece our <em>permission</em> module is missing, is a helper to create
+functions that check that a given <code>Role</code> has the correct <code>Permission</code> to perform
+a certain action.</p>
+
+<p>We&rsquo;ve established that a <code>Role</code> is a group of <code>Permissions</code>, so, when it comes
+to checking if a <code>Role</code> has certain <code>Permission</code>, we just need to check the bit
+that corresponds to that <code>Permission</code>. If the bit is <code>1</code>, we know it is
+authorized; if it is <code>0</code>, it is not.</p>
+
+<p>How to check for the value of a specific bit you ask? We use the &ldquo;bitwise and&rdquo; (<code>&amp;</code>).</p>
+
+<p><em>Bitwise and</em> will return <code>1</code> only when both arguments are <code>1</code>. So we just need
+to compare the actual <code>Role</code> with the required <code>Permission</code>. The required
+<code>Permission</code> will of course have the bit we&rsquo;re looking for set to <code>1</code> (and the
+rest set to <code>0</code>). If the actual <code>Role</code> has that same bit set to <code>1</code>, then we know
+that <code>actualRole &amp; requiredPermission</code> will for sure be greater than zero,
+because it will have one of its bits set to <code>1</code>.</p>
+
+<p>Whether the resulting number (in decimal) is <code>1</code>, <code>2</code>, <code>4</code> or <code>8</code> will depend
+on the bit we are checking, but in all cases we know it&rsquo;s going to be <code>&gt; 0</code>,
+so we will use that.</p>
+
+<pre><code>// permission.ts
+
+...
+
+export function satisfy(p: Permission): (r: Role) =&gt; boolean {
+  return (r: Role) =&gt; (r &amp; p) &gt; 0
+}
+</code></pre>
+
+<p>Let&rsquo;s create an <code>index.ts</code> file and put our <em>permission</em> module to use,
+hopefully that will clarify what we&rsquo;ve done.</p>
+
+<pre><code>// index.ts
+
+import type { Role } from &quot;./permission&quot;
+import { createRole, satisfy, Permissions } from &quot;./permission&quot;
+
+// Create roles
+const anon = createRole(Permissions.NONE)
+const jr = createRole(Permissions.INVOICER)
+const sr = createRole(Permissions.PAYER, Permissions.COLLECTOR)
+const owner = createRole(
+  Permissions.COLLECTOR,
+  Permissions.PAYER,
+  Permissions.INVOICER,
+  Permissions.COOK
+)
+
+// Create some functions to verify permissions
+const canInvoice = satisfy(Permissions.INVOICER)
+const canCollect = satisfy(Permissions.COLLECTOR)
+const canPay = satisfy(Permissions.PAYER)
+const canCook = satisfy(Permissions.COOK)
+
+// Let's create a function to log all permissions
+function checkAllPermissions(role: Role, label: string) {
+  console.log(`===== ${label} =====`)
+  console.log(`Invoicer? ${canInvoice(role)}`)
+  console.log(`Collector? ${canCollect(role)}`)
+  console.log(`Payer? ${canPay(role)}`)
+  console.log(`Cook? ${canCook(role)}`)
+  console.log()
+}
+
+checkAllPermissions(anon, &quot;Anonymous&quot;)
+checkAllPermissions(jr, &quot;Junior employee&quot;)
+checkAllPermissions(sr, &quot;Senior employee&quot;)
+checkAllPermissions(owner, &quot;Owner&quot;)
+</code></pre>
+
+<p>If we run <code>index.ts</code>, we will get something like:</p>
+
+<pre><code>===== Anonymous =====
+Invoicer? false
+Collector? false
+Payer? false
+Cook? false
+
+===== Junior employee =====
+Invoicer? true
+Collector? false
+Payer? false
+Cook? false
+
+===== Senior employee =====
+Invoicer? false
+Collector? true
+Payer? true
+Cook? false
+
+===== Owner =====
+Invoicer? true
+Collector? true
+Payer? true
+Cook? true
+</code></pre>
+
+<p>And that&rsquo;s it. Hope you like it. Use your bits wisely.</p>
+
+  </main>
+  
+  <footer>
+      <nav>
+          <div>
+              <a href="/">HOME</a>
+              <a href="/blog/about.html">ABOUT</a>
+              <a href="/feed">RSS</a>
+          </div>
+          <div>
+              <img
+                src="/blog/assets/gruvbox.png"
+                alt="Gruvbox colorscheme"
+                title="Gruvbox"
+                width="125px"
+                onclick="changeTheme('gruvbox');"
+              >
+              <img
+                src="/blog/assets/nord.png"
+                alt="Nord colorscheme"
+                title="Nord"
+                width="125px"
+                onclick="changeTheme('nord');"
+              >
+              <img
+                src="/blog/assets/light.png"
+                alt="Light colorscheme"
+                title="Light"
+                width="125px"
+                onclick="changeTheme('onelight');"
+              >
+          </div>
+      </nav>
+  </footer>
+  <script>
+    function setTheme(name) {
+        window.document.querySelector('body').className = name;
+    }
+    function changeTheme(name) {
+        window.localStorage.setItem('colorscheme', name);
+        setTheme(name);
+    }
+    window.onload = () => {
+        const stored = window.localStorage.getItem('colorscheme');
+        const theme = ['gruvbox', 'nord', 'onelight'].includes(stored) ? stored : 'gruvbox';
+        setTheme(theme);
+    };
+  </script>
+
+  <script>hljs.highlightAll();</script>
+</body>
+</html>

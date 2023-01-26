@@ -5,15 +5,23 @@
         <link>https://germandv.me</link>
         <description>Programming things</description>
         <language>en-us</language>
-        <lastBuildDate>2022-12-29T11:04:08-03:00</lastBuildDate>
+        <lastBuildDate>2023-01-26T17:04:18-03:00</lastBuildDate>
 
         
             <item>
-                <pubDate>November 30, 2022</pubDate>
-                <link>https://germandv.me/blog/utility-to-deal-with-secrets-in-TS.html</link>
-                <guid>https://germandv.me/blog/utility-to-deal-with-secrets-in-TS.html</guid>
-                <title>Utility To Deal With Secrets In TS</title>
-                <description>If your code deals, at one point or another, with secrets in plain text, it might be a good idea to prevent accidental logging of such sensitive information.</description>
+                <pubDate>December 28, 2022</pubDate>
+                <link>https://germandv.me/blog/handle-errors-with-either.html</link>
+                <guid>https://germandv.me/blog/handle-errors-with-either.html</guid>
+                <title>Handle Errors With Either</title>
+                <description>With an `Either` construct, we can treat errors as values and handle them in an elegant way.</description>
+            </item>
+        
+            <item>
+                <pubDate>December 29, 2022</pubDate>
+                <link>https://germandv.me/blog/node-tests-without-libraries.html</link>
+                <guid>https://germandv.me/blog/node-tests-without-libraries.html</guid>
+                <title>Node Tests Without Libraries</title>
+                <description>Let's test some Javascript code without using any libraries, just a couple of JS files, no package.json, no npm.</description>
             </item>
         
             <item>
@@ -57,19 +65,19 @@
             </item>
         
             <item>
-                <pubDate>December 28, 2022</pubDate>
-                <link>https://germandv.me/blog/handle-errors-with-either.html</link>
-                <guid>https://germandv.me/blog/handle-errors-with-either.html</guid>
-                <title>Handle Errors With Either</title>
-                <description>With an `Either` construct, we can treat errors as values and handle them in an elegant way.</description>
+                <pubDate>January 26, 2023</pubDate>
+                <link>https://germandv.me/blog/using-bits-to-model-permissions.html</link>
+                <guid>https://germandv.me/blog/using-bits-to-model-permissions.html</guid>
+                <title>Using Bits To Model Permissions</title>
+                <description>While looking for an excuse to use bitwise operators and do some bit manipulation, I thought it would be nice to see how we could model permissions and roles using bits.</description>
             </item>
         
             <item>
-                <pubDate>December 29, 2022</pubDate>
-                <link>https://germandv.me/blog/node-tests-without-libraries.html</link>
-                <guid>https://germandv.me/blog/node-tests-without-libraries.html</guid>
-                <title>Node Tests Without Libraries</title>
-                <description>Let's test some Javascript code without using any libraries, just a couple of JS files, no package.json, no npm.</description>
+                <pubDate>November 30, 2022</pubDate>
+                <link>https://germandv.me/blog/utility-to-deal-with-secrets-in-TS.html</link>
+                <guid>https://germandv.me/blog/utility-to-deal-with-secrets-in-TS.html</guid>
+                <title>Utility To Deal With Secrets In TS</title>
+                <description>If your code deals, at one point or another, with secrets in plain text, it might be a good idea to prevent accidental logging of such sensitive information.</description>
             </item>
         
 
