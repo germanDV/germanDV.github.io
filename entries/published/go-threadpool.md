@@ -5,7 +5,7 @@ revision: 2022-12-14
 excerpt: In Go, it's generally fine to run hundreds of thousands (even millions) of goroutines. However, you may need to limit them. One of the ways to do so is by implementing a pool of workers or threadpool.
 ---
 
-If you have some background with _Node_, as I do, you've probably seen the pattern where you spawn one instance of your program per CPU (I know this is true for other languagues too, but I'll limit myself to talk about what I have extensive experience with). Goroutines are not like that, you can run hundreds of thousands of them, even millions. That's because goroutines are **green threads**, not **os threads**. They are handled by Go and not by the OS directly.
+If you have some background with _Node_, as I do, you've probably seen the pattern where you spawn one instance of your program per CPU. Goroutines are not like that, you can run hundreds of thousands of them, even millions. That's because goroutines are **green threads**, not **os threads**. They are handled by Go and not by the OS directly.
 
 Go handles the management of os threads. If you need to control the number of operating system threads allocated, you can use `GOMAXPROCS`. By default, Go programs run with `GOMAXPROCS` set to the number of cores available. So, most of the times, you needn't worry about it.
 
@@ -41,6 +41,7 @@ Since we may end up with a couple different examples, let's follow the conventio
 mkdir -p cmd/single
 touch cmd/single/main.go
 ```
+
 <br />
 
 ```go
@@ -129,7 +130,6 @@ go run cmd/single/main.go
 
 For me, it's around 3.7 seconds, but your results may be totally different. Check it out.
 
-
 Let's now use a threadpool. We will first imagine the kind of API we want it to expose and then build it, it's a nice design technique in my opinion.
 
 I want to be able to:
@@ -145,6 +145,7 @@ So, let's create another _main.go_ using this yet-to-be-built threadpool:
 mkdir cmd/pool
 touch cmd/pool/main.go
 ```
+
 <br />
 
 ```go
@@ -381,7 +382,7 @@ In our `main` function we just need to call `pool.Wait()`, right before printing
 func main() {
   ...
   // This will block until all workers in the pool finish.
-  pool.Wait() 
+  pool.Wait()
 
   // Same message we had before
   fmt.Printf("Done in %s\n", time.Since(start))
@@ -412,7 +413,7 @@ func main() {
 ...
 ```
 
-You should see something like: 
+You should see something like:
 
 ```
 Goroutines: #1001
@@ -423,4 +424,3 @@ Done in 2s
 We have set the threadpool to have 1k threads, our _main_ func runs in its own goroutine and so we end up with **1001**. After waiting for all the work to be finished, the goroutines go down to just one (for our _main_). Everything checks out, even though we have 100k polygons, we use 1k goroutines, because that's the limit we set when creating the threadpool.
 
 One other thing that may not be obvious, is that we always allocate 1k goroutines. So, if we are processing a file with 20 polygons in it, it's overkill to have such a large threadpool, 980 goroutines will have nothing to do.
-

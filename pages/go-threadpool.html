@@ -30,7 +30,7 @@
       <p>In Go, it&#39;s generally fine to run hundreds of thousands (even millions) of goroutines. However, you may need to limit them. One of the ways to do so is by implementing a pool of workers or threadpool.</p>
     </div>
 
-    <p>If you have some background with <em>Node</em>, as I do, you&rsquo;ve probably seen the pattern where you spawn one instance of your program per CPU (I know this is true for other languagues too, but I&rsquo;ll limit myself to talk about what I have extensive experience with). Goroutines are not like that, you can run hundreds of thousands of them, even millions. That&rsquo;s because goroutines are <strong>green threads</strong>, not <strong>os threads</strong>. They are handled by Go and not by the OS directly.</p>
+    <p>If you have some background with <em>Node</em>, as I do, you&rsquo;ve probably seen the pattern where you spawn one instance of your program per CPU. Goroutines are not like that, you can run hundreds of thousands of them, even millions. That&rsquo;s because goroutines are <strong>green threads</strong>, not <strong>os threads</strong>. They are handled by Go and not by the OS directly.</p>
 
 <p>Go handles the management of os threads. If you need to control the number of operating system threads allocated, you can use <code>GOMAXPROCS</code>. By default, Go programs run with <code>GOMAXPROCS</code> set to the number of cores available. So, most of the times, you needn&rsquo;t worry about it.</p>
 
@@ -396,7 +396,7 @@ func (tp *ThreadPool[T]) Wait() {
 func main() {
   ...
   // This will block until all workers in the pool finish.
-  pool.Wait() 
+  pool.Wait()
 
   // Same message we had before
   fmt.Printf(&quot;Done in %s\n&quot;, time.Since(start))

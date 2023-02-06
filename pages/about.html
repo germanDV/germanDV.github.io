@@ -1,87 +1,102 @@
-
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>germandv</title>
-  <meta name="description" content="Programming things, mostly web related.">
-  <meta name="keywords" content="programming, development, go, rust, typescript, javascript, react, fullstack">
-  <link rel="shortcut icon" href="/blog/assets/favicon.ico" type="image/x-icon">
-  <link rel="stylesheet" href="/blog/assets/main.css">
-</head>
-<body class="gruvbox">
-  <main>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>germandv</title>
+    <meta name="description" content="Programming things, mostly web related." />
+    <meta
+      name="keywords"
+      content="programming, development, go, rust, typescript, javascript, react, fullstack"
+    />
+    <link rel="shortcut icon" href="/blog/assets/favicon.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="/blog/assets/main.css" />
+  </head>
+  <body class="gruvbox">
+    <main>
       <div class="index">
         <h1>About</h1>
         <p>
-          I write about software development topics that I find interesting or useful and that I would like to preserve for my
-          own reference and/or I would like to share with fellow developers, with the hope they might help someone.
+          I write about software development topics that I find interesting or useful and that I
+          would like to preserve for my own reference and/or I would like to share with fellow
+          developers, with the hope they might help someone.
         </p>
         <p>
-          As a general disclaimer, I will say that when I share something, it's not necessarily the best or the only option
-          to tackle a problem. I advise readers to focus on the ideas rather than the concrete implementation.
-          The same goes for terminology, I'll do my best to use correct language, but it can get tricky sometimes.
-          My hope is that if you focus on the ideas, try them out, test them and adjust them to your needs/liking, you get something out of this site.
+          As a general disclaimer, I will say that when I share something, it's not necessarily the
+          best or the only option to tackle a problem. I advise readers to focus on the ideas rather
+          than the concrete implementation. The same goes for terminology, I'll do my best to use
+          correct language, but it can get tricky sometimes. My hope is that if you focus on the
+          ideas, try them out, test them and adjust them to your needs/liking, you get something out
+          of this site.
+        </p>
+
+        <h2>Hire Me</h2>
+        <p>
+          If you have any software needs that I may help you with, I'll be glad to hear from you and
+          your project. Please send me a note to the email address below.
         </p>
 
         <h2>Contact</h2>
-        <p>If you'd like to reach out, please do so by email: <code>germanviescas[at]gmail[dot]com</code></p>
+        <p>
+          If you'd like to reach out, please do so by email:
+          <code>germanviescas[at]gmail[dot]com</code>
+        </p>
 
         <h2>Key</h2>
         <p>
-          If needed, you may <a download href="/blog/assets/germandv_gpg.asc">download my PGP key</a>.
-          The fingerprint <code>4A3A EF99 B0EB 587A 6E88 2B1C 282B 421A AD3A FC51</code>
-          can be verified in my <a href="https://gitlab.com/germanDV" target="_blank">GitLab profile</a>.
+          If needed, you may
+          <a download href="/blog/assets/germandv_gpg.asc">download my PGP key</a>. The fingerprint
+          <code>4A3A EF99 B0EB 587A 6E88 2B1C 282B 421A AD3A FC51</code> can be verified in my
+          <a href="https://gitlab.com/germanDV" target="_blank">GitLab profile</a>.
         </p>
       </div>
-  </main>
-  
-  <footer>
+    </main>
+
+    <footer>
       <nav>
-          <div>
-              <a href="/">HOME</a>
-              <a href="/blog/about.html">ABOUT</a>
-              <a href="/blog/feed.rss">RSS</a>
-          </div>
-          <div>
-              <img
-                src="/blog/assets/gruvbox.png"
-                alt="Gruvbox colorscheme"
-                title="Gruvbox"
-                width="125px"
-                onclick="changeTheme('gruvbox');"
-              >
-              <img
-                src="/blog/assets/nord.png"
-                alt="Nord colorscheme"
-                title="Nord"
-                width="125px"
-                onclick="changeTheme('nord');"
-              >
-              <img
-                src="/blog/assets/light.png"
-                alt="Light colorscheme"
-                title="Light"
-                width="125px"
-                onclick="changeTheme('onelight');"
-              >
-          </div>
+        <div>
+          <a href="/">HOME</a>
+          <a href="/blog/about.html">ABOUT</a>
+          <a href="/blog/feed.rss">RSS</a>
+        </div>
+        <div>
+          <img
+            src="/blog/assets/gruvbox.png"
+            alt="Gruvbox colorscheme"
+            title="Gruvbox"
+            width="125px"
+            onclick="changeTheme('gruvbox');"
+          />
+          <img
+            src="/blog/assets/nord.png"
+            alt="Nord colorscheme"
+            title="Nord"
+            width="125px"
+            onclick="changeTheme('nord');"
+          />
+          <img
+            src="/blog/assets/light.png"
+            alt="Light colorscheme"
+            title="Light"
+            width="125px"
+            onclick="changeTheme('onelight');"
+          />
+        </div>
       </nav>
-  </footer>
-  <script>
-    function setTheme(name) {
-        window.document.querySelector('body').className = name;
-    }
-    function changeTheme(name) {
-        window.localStorage.setItem('colorscheme', name);
-        setTheme(name);
-    }
-    window.onload = () => {
-        const stored = window.localStorage.getItem('colorscheme');
-        const theme = ['gruvbox', 'nord', 'onelight'].includes(stored) ? stored : 'gruvbox';
-        setTheme(theme);
-    };
-  </script>
-</body>
+    </footer>
+    <script>
+      function setTheme(name) {
+        window.document.querySelector("body").className = name
+      }
+      function changeTheme(name) {
+        window.localStorage.setItem("colorscheme", name)
+        setTheme(name)
+      }
+      window.onload = () => {
+        const stored = window.localStorage.getItem("colorscheme")
+        const theme = ["gruvbox", "nord", "onelight"].includes(stored) ? stored : "gruvbox"
+        setTheme(theme)
+      }
+    </script>
+  </body>
 </html>
