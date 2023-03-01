@@ -5,7 +5,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"path/filepath"
 	"strings"
 	"time"
 
@@ -41,8 +40,6 @@ func (s *Server) Listen() {
 	s.registerHealthCheckHandler()
 	s.registerAnalyticsHandler()
 	s.registerStaticHandler()
-	s.registerIndexHandler()
-	s.registerRssHandler()
 
 	if os.Getenv("ENV") == "development" {
 		s.registerPreviewHandler()
@@ -58,33 +55,14 @@ func (s *Server) Listen() {
 func (s *Server) registerStaticHandler() {
 	fs := http.FileServer(http.Dir("./pages"))
 	fsWithTimeout := http.TimeoutHandler(fs, 5*time.Second, "Timeout\n")
-	s.mux.Handle("/blog/", http.StripPrefix("/blog/", fsWithTimeout))
-}
-
-func (s *Server) registerIndexHandler() {
-	handler := func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, filepath.Join("pages", "index.html"))
-	}
-	s.mux.Handle("/", http.HandlerFunc(handler))
-}
-
-func (s *Server) registerRssHandler() {
-	handler := func(w http.ResponseWriter, r *http.Request) {
-		feed, err := os.ReadFile(filepath.Join("pages", "feed.rss"))
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		w.Write(feed)
-	}
-	s.mux.Handle("/feed", http.HandlerFunc(handler))
+	s.mux.Handle("/", fsWithTimeout)
 }
 
 func (s *Server) registerHealthCheckHandler() {
 	handler := func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	}
-	s.mux.Handle("/health_check", http.HandlerFunc(handler))
+	s.mux.Handle("/healthcheck", http.HandlerFunc(handler))
 }
 
 func (s *Server) registerAnalyticsHandler() {

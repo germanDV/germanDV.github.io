@@ -1,48 +1,48 @@
 {{define "footer"}}
-  <footer>
-      <nav>
-          <div>
-              <a href="/">HOME</a>
-              <a href="/blog/about.html">ABOUT</a>
-              <a href="/feed">RSS</a>
-          </div>
-          <div>
-              <img
-                src="/blog/assets/gruvbox.png"
-                alt="Gruvbox colorscheme"
-                title="Gruvbox"
-                width="125px"
-                onclick="changeTheme('gruvbox');"
-              >
-              <img
-                src="/blog/assets/nord.png"
-                alt="Nord colorscheme"
-                title="Nord"
-                width="125px"
-                onclick="changeTheme('nord');"
-              >
-              <img
-                src="/blog/assets/light.png"
-                alt="Light colorscheme"
-                title="Light"
-                width="125px"
-                onclick="changeTheme('onelight');"
-              >
-          </div>
-      </nav>
-  </footer>
-  <script>
-    function setTheme(name) {
-        window.document.querySelector('body').className = name;
-    }
-    function changeTheme(name) {
-        window.localStorage.setItem('colorscheme', name);
-        setTheme(name);
-    }
-    window.onload = () => {
-        const stored = window.localStorage.getItem('colorscheme');
-        const theme = ['gruvbox', 'nord', 'onelight'].includes(stored) ? stored : 'gruvbox';
-        setTheme(theme);
-    };
-  </script>
+<footer>
+  <nav>
+    <div>
+      <a href="/">HOME</a>
+      <a href="/about.html">ABOUT</a>
+      <a href="/blog/feed.xml">RSS</a>
+    </div>
+    <div>
+      <img
+        src="/assets/gruvbox.png"
+        alt="Gruvbox colorscheme"
+        title="Gruvbox"
+        width="125px"
+        onclick="changeTheme('gruvbox');"
+      />
+      <img
+        src="/assets/nord.png"
+        alt="Nord colorscheme"
+        title="Nord"
+        width="125px"
+        onclick="changeTheme('nord');"
+      />
+      <img
+        src="/assets/light.png"
+        alt="Light colorscheme"
+        title="Light"
+        width="125px"
+        onclick="changeTheme('onelight');"
+      />
+    </div>
+  </nav>
+</footer>
+<script>
+  function setTheme(name) {
+    window.document.querySelector("body").className = name
+  }
+  function changeTheme(name) {
+    window.localStorage.setItem("colorscheme", name)
+    setTheme(name)
+  }
+  window.onload = () => {
+    const stored = window.localStorage.getItem("colorscheme")
+    const theme = ["gruvbox", "nord", "onelight"].includes(stored) ? stored : "gruvbox"
+    setTheme(theme)
+  }
+</script>
 {{end}}

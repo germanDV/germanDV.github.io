@@ -1,125 +1,128 @@
 
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>germandv</title>
-  <meta name="description" content="Programming things, mostly web related.">
-  <meta name="keywords" content="programming, development, go, rust, typescript, javascript, react, fullstack">
-  <link rel="shortcut icon" href="/blog/assets/favicon.ico" type="image/x-icon">
-  <link rel="stylesheet" href="/blog/assets/main.css">
-</head>
-<body class="gruvbox">
-  <main>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>germandv</title>
+    <meta name="description" content="Programming things, mostly web related." />
+    <meta
+      name="keywords"
+      content="programming, development, go, rust, typescript, javascript, react, fullstack"
+    />
+    <link rel="shortcut icon" href="/assets/favicon.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="/assets/main.css" />
+  </head>
+  <body class="gruvbox">
+    <main>
       <div class="index">
         <h1>Programming Things</h1>
         <ul>
-            
-                <li>
-                    <a href="/blog/using-bits-to-model-permissions.html">using bits to model permissions &rarr;</a>
-                    <br />
-                    <span>January 26, 2023</span>
-                </li>
-             
-                <li>
-                    <a href="/blog/node-tests-without-libraries.html">node tests without libraries &rarr;</a>
-                    <br />
-                    <span>December 29, 2022</span>
-                </li>
-             
-                <li>
-                    <a href="/blog/handle-errors-with-either.html">handle errors with either &rarr;</a>
-                    <br />
-                    <span>December 28, 2022</span>
-                </li>
-             
-                <li>
-                    <a href="/blog/a-result-type-for-typescript.html">a result type for typescript &rarr;</a>
-                    <br />
-                    <span>December 15, 2022</span>
-                </li>
-             
-                <li>
-                    <a href="/blog/go-threadpool.html">go threadpool &rarr;</a>
-                    <br />
-                    <span>December 14, 2022</span>
-                </li>
-             
-                <li>
-                    <a href="/blog/basic-auth-and-the-browser-login-form.html">basic auth and the browser login form &rarr;</a>
-                    <br />
-                    <span>December 7, 2022</span>
-                </li>
-             
-                <li>
-                    <a href="/blog/a-makefile-for-go-projects.html">a makefile for go projects &rarr;</a>
-                    <br />
-                    <span>December 2, 2022</span>
-                </li>
-             
-                <li>
-                    <a href="/blog/utility-to-deal-with-secrets-in-TS.html">utility to deal with secrets in TS &rarr;</a>
-                    <br />
-                    <span>November 30, 2022</span>
-                </li>
-             
-                <li>
-                    <a href="/blog/utility-to-deal-with-secrets-in-go.html">utility to deal with secrets in go &rarr;</a>
-                    <br />
-                    <span>November 29, 2022</span>
-                </li>
-             
+          
+          <li>
+            <a href="/blog/using-bits-to-model-permissions.html">using bits to model permissions &rarr;</a>
+            <br />
+            <span>January 26, 2023</span>
+          </li>
+          
+          <li>
+            <a href="/blog/node-tests-without-libraries.html">node tests without libraries &rarr;</a>
+            <br />
+            <span>December 29, 2022</span>
+          </li>
+          
+          <li>
+            <a href="/blog/handle-errors-with-either.html">handle errors with either &rarr;</a>
+            <br />
+            <span>December 28, 2022</span>
+          </li>
+          
+          <li>
+            <a href="/blog/a-result-type-for-typescript.html">a result type for typescript &rarr;</a>
+            <br />
+            <span>December 15, 2022</span>
+          </li>
+          
+          <li>
+            <a href="/blog/go-threadpool.html">go threadpool &rarr;</a>
+            <br />
+            <span>December 14, 2022</span>
+          </li>
+          
+          <li>
+            <a href="/blog/basic-auth-and-the-browser-login-form.html">basic auth and the browser login form &rarr;</a>
+            <br />
+            <span>December 7, 2022</span>
+          </li>
+          
+          <li>
+            <a href="/blog/a-makefile-for-go-projects.html">a makefile for go projects &rarr;</a>
+            <br />
+            <span>December 2, 2022</span>
+          </li>
+          
+          <li>
+            <a href="/blog/utility-to-deal-with-secrets-in-TS.html">utility to deal with secrets in TS &rarr;</a>
+            <br />
+            <span>November 30, 2022</span>
+          </li>
+          
+          <li>
+            <a href="/blog/utility-to-deal-with-secrets-in-go.html">utility to deal with secrets in go &rarr;</a>
+            <br />
+            <span>November 29, 2022</span>
+          </li>
+          
         </ul>
       </div>
-  </main>
-  
-  <footer>
-      <nav>
-          <div>
-              <a href="/">HOME</a>
-              <a href="/blog/about.html">ABOUT</a>
-              <a href="/feed">RSS</a>
-          </div>
-          <div>
-              <img
-                src="/blog/assets/gruvbox.png"
-                alt="Gruvbox colorscheme"
-                title="Gruvbox"
-                width="125px"
-                onclick="changeTheme('gruvbox');"
-              >
-              <img
-                src="/blog/assets/nord.png"
-                alt="Nord colorscheme"
-                title="Nord"
-                width="125px"
-                onclick="changeTheme('nord');"
-              >
-              <img
-                src="/blog/assets/light.png"
-                alt="Light colorscheme"
-                title="Light"
-                width="125px"
-                onclick="changeTheme('onelight');"
-              >
-          </div>
-      </nav>
-  </footer>
-  <script>
-    function setTheme(name) {
-        window.document.querySelector('body').className = name;
-    }
-    function changeTheme(name) {
-        window.localStorage.setItem('colorscheme', name);
-        setTheme(name);
-    }
-    window.onload = () => {
-        const stored = window.localStorage.getItem('colorscheme');
-        const theme = ['gruvbox', 'nord', 'onelight'].includes(stored) ? stored : 'gruvbox';
-        setTheme(theme);
-    };
-  </script>
+    </main>
+    
+<footer>
+  <nav>
+    <div>
+      <a href="/">HOME</a>
+      <a href="/about.html">ABOUT</a>
+      <a href="/blog/feed.xml">RSS</a>
+    </div>
+    <div>
+      <img
+        src="/assets/gruvbox.png"
+        alt="Gruvbox colorscheme"
+        title="Gruvbox"
+        width="125px"
+        onclick="changeTheme('gruvbox');"
+      />
+      <img
+        src="/assets/nord.png"
+        alt="Nord colorscheme"
+        title="Nord"
+        width="125px"
+        onclick="changeTheme('nord');"
+      />
+      <img
+        src="/assets/light.png"
+        alt="Light colorscheme"
+        title="Light"
+        width="125px"
+        onclick="changeTheme('onelight');"
+      />
+    </div>
+  </nav>
+</footer>
+<script>
+  function setTheme(name) {
+    window.document.querySelector("body").className = name
+  }
+  function changeTheme(name) {
+    window.localStorage.setItem("colorscheme", name)
+    setTheme(name)
+  }
+  window.onload = () => {
+    const stored = window.localStorage.getItem("colorscheme")
+    const theme = ["gruvbox", "nord", "onelight"].includes(stored) ? stored : "gruvbox"
+    setTheme(theme)
+  }
+</script>
 
-</body>
+  </body>
 </html>

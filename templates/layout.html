@@ -1,44 +1,49 @@
 {{define "layout"}}
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="keywords" content="programming, development, go, rust, typescript, javascript, react, fullstack">
-  <meta name="description" content="{{.Excerpt}}">
-  <title>germandv: {{.Title}}</title>
-  <link rel="shortcut icon" href="/blog/assets/favicon.ico" type="image/x-icon">
-  <link rel="stylesheet" href="/blog/assets/main.css">
-  <link rel="stylesheet" href="/blog/assets/github-dark.min.css">
-  <script src="/blog/assets/highlight.min.js"></script>
-</head>
-<body class="gruvbox">
-  <main>
-    <header class="entry">
-      <a href="/">&larr;</a>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="keywords"
+      content="programming, development, go, rust, typescript, javascript, react, fullstack"
+    />
+    <meta name="description" content="{{.Excerpt}}" />
+    <title>germandv: {{.Title}}</title>
+    <link rel="shortcut icon" href="/assets/favicon.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="/assets/main.css" />
+    <link rel="stylesheet" href="/assets/github-dark.min.css" />
+    <script src="/assets/highlight.min.js"></script>
+  </head>
+  <body class="gruvbox">
+    <main>
+      <header class="entry">
+        <a href="/">&larr;</a>
 
-      {{if ne .Published .Revision}}
+        {{if ne .Published .Revision}}
         <div class="dates">
           <time datetime="{{.Published}}"><b>Published</b> {{.Published}}</time>
           <time datetime="{{.Revision}}"><b>Last Revision</b> {{.Revision}}</time>
         </div>
-      {{else}}
+        {{else}}
         <div class="dates">
           <time datetime="{{.Published}}"><b>Published</b> {{.Published}}</time>
         </div>
-      {{end}}
-    </header>
+        {{end}}
+      </header>
 
-    <h1>{{.Title}}</h1>
+      <h1>{{.Title}}</h1>
 
-    <div class="excerpt">
-      <p>{{.Excerpt}}</p>
-    </div>
+      <div class="excerpt">
+        <p>{{.Excerpt}}</p>
+      </div>
 
-    {{.Body}}
-  </main>
-  {{template "footer"}}
-  <script>hljs.highlightAll();</script>
-</body>
+      {{.Body}}
+    </main>
+    {{template "footer"}}
+    <script>
+      hljs.highlightAll()
+    </script>
+  </body>
 </html>
 {{end}}

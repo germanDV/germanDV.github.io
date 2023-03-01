@@ -7,16 +7,18 @@ import (
 )
 
 var src string
+var indexDst string
 var dst string
 
 func init() {
 	if os.Getenv("ENV") == "testing" {
 		src = "testdata/entries"
-		dst = "testdata/pages"
+		indexDst = "testdata/pages"
 	} else {
 		src = "entries"
-		dst = "pages"
+		indexDst = "pages"
 	}
+	dst = filepath.Join(indexDst, "blog")
 }
 
 func list(dir string) (map[uint]string, error) {
@@ -83,14 +85,14 @@ func Publish(from string) error {
 	return move(from, to)
 }
 
-// CreateFeed creates a `feed.rss` file
+// CreateFeed creates a `feed.xml` file
 func CreateFeed() (*os.File, error) {
-	return os.Create(filepath.Join(dst, "feed.rss"))
+	return os.Create(filepath.Join(dst, "feed.xml"))
 }
 
 // CreateIndex creates `index.html`
 func CreateIndex() (*os.File, error) {
-	return os.Create(filepath.Join(dst, "index.html"))
+	return os.Create(filepath.Join(indexDst, "index.html"))
 }
 
 // CreatePages creates an html file

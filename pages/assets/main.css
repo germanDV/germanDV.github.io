@@ -1,34 +1,38 @@
 @font-face {
-  font-family: 'JetBrains Mono';
+  font-family: "JetBrains Mono";
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url(/blog/assets/jetbrains_latin_ext.woff2) format('woff2');
-  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+  src: url(/assets/jetbrains_latin_ext.woff2) format("woff2");
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113,
+    U+2C60-2C7F, U+A720-A7FF;
 }
 @font-face {
-  font-family: 'JetBrains Mono';
+  font-family: "JetBrains Mono";
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url(/blog/assets/jetbrains_latin.woff2) format('woff2');
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+  src: url(/assets/jetbrains_latin.woff2) format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F,
+    U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 @font-face {
-  font-family: 'Titillium Web';
+  font-family: "Titillium Web";
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url(/blog/assets/titillium_latin_ext.woff2) format('woff2');
-  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+  src: url(/assets/titillium_latin_ext.woff2) format("woff2");
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113,
+    U+2C60-2C7F, U+A720-A7FF;
 }
 @font-face {
-  font-family: 'Titillium Web';
+  font-family: "Titillium Web";
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url(/blog/assets/titillium_latin.woff2) format('woff2');
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+  src: url(/assets/titillium_latin.woff2) format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F,
+    U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
 .gruvbox {
@@ -61,10 +65,12 @@
 html {
   box-sizing: border-box;
   font-size: 20px;
-  font-family: 'Titillium Web', sans-serif;
+  font-family: "Titillium Web", sans-serif;
 }
 
-*, *:before, *:after {
+*,
+*:before,
+*:after {
   box-sizing: inherit;
 }
 
@@ -73,18 +79,36 @@ body {
   color: var(--main-text-color);
 }
 
-body, main, div, h1, h2, h3, h4, h5, h6, p, ol, ul, code {
+body,
+main,
+div,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+ol,
+ul,
+code {
   margin: 0;
   padding: 0;
 }
 
 ul {
-   list-style-position: inside;
-   list-style-type: square;
-   margin-left: 2rem;
+  list-style-position: inside;
+  list-style-type: square;
+  margin-left: 2rem;
 }
 
-h1, h2, h3, h4, h5, h6, p {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p {
   font-weight: normal;
   line-height: 1.4;
 }
@@ -131,10 +155,10 @@ pre > code {
 }
 
 code {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: "JetBrains Mono", monospace;
   color: var(--accent-color);
   line-height: 1.5;
-  font-size: .9rem;
+  font-size: 0.9rem;
 }
 
 img {
@@ -143,9 +167,9 @@ img {
 }
 
 header.entry {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .excerpt {
@@ -170,34 +194,34 @@ header.entry {
 
 time {
   display: block;
-  margin-bottom: .25rem;
-  font-size: .75rem;
+  margin-bottom: 0.25rem;
+  font-size: 0.75rem;
 }
 
 .index {
-    min-height: calc(100vh - 100px - 2px - 48px);
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
+  min-height: calc(100vh - 100px - 2px - 48px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 .index > ul {
-   list-style-type: none;
-   margin-left: 0;
+  list-style-type: none;
+  margin-left: 0;
 }
 .index > ul > li {
   margin-bottom: 14px;
 }
 .index > ul > li > a {
-    text-decoration: none;
-    transition-duration: .5s;
-    text-transform: capitalize;
-    font-size: 1.50rem;
+  text-decoration: none;
+  transition-duration: 0.5s;
+  text-transform: capitalize;
+  font-size: 1.5rem;
 }
 .index > ul > li > a:hover {
-    color: var(--main-text-color);
+  color: var(--main-text-color);
 }
 .index > ul > li > span {
-    color: var(--secondary-text-color);
+  color: var(--secondary-text-color);
 }
 
 blockquote {
@@ -207,36 +231,36 @@ blockquote {
 }
 
 footer {
-   border-top: 2px solid var(--accent-bg-color); 
-   margin-top: 48px;
+  border-top: 2px solid var(--accent-bg-color);
+  margin-top: 48px;
 }
 
 footer > nav {
-    height: 100px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 24px;
+  height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
 }
 footer > nav > div {
-    flex-grow: 1;
+  flex-grow: 1;
 }
 
 footer > nav > div:last-child {
-    flex-grow: 1;
-    display: flex;
-    justify-content: right;
+  flex-grow: 1;
+  display: flex;
+  justify-content: right;
 }
 
 footer > nav > div > img {
-   border: 2px solid var(--accent-bg-color); 
-   border-radius: 8px;
-   cursor: pointer;
-   margin: 0 12px;
+  border: 2px solid var(--accent-bg-color);
+  border-radius: 8px;
+  cursor: pointer;
+  margin: 0 12px;
 }
 
 footer > nav > div > a {
-   margin: 0 12px;
+  margin: 0 12px;
 }
 
 @media only screen and (max-width: 450px) {
@@ -244,21 +268,20 @@ footer > nav > div > a {
     font-size: 2.5rem;
   }
   .index > ul > li > a {
-      font-size: 1.25rem;
+    font-size: 1.25rem;
   }
 }
 
 @media only screen and (max-width: 750px) {
-    footer > nav {
-        flex-direction: column;
-        padding-top: 8px;
-        padding-bottom: 8px;
-    }
-    footer > nav > div > img {
-        width: 75px;
-    }
-    footer > nav > div:last-child {
-        justify-content: center;
-    }
+  footer > nav {
+    flex-direction: column;
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+  footer > nav > div > img {
+    width: 75px;
+  }
+  footer > nav > div:last-child {
+    justify-content: center;
+  }
 }
-

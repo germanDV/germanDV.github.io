@@ -1,36 +1,39 @@
 
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="keywords" content="programming, development, go, rust, typescript, javascript, react, fullstack">
-  <meta name="description" content="Browsers already have a login form that we can leverage for simple authentication requirements. Let&#39;s explore basic auth.">
-  <title>germandv: Basic Auth And The Browser Login Form</title>
-  <link rel="shortcut icon" href="/blog/assets/favicon.ico" type="image/x-icon">
-  <link rel="stylesheet" href="/blog/assets/main.css">
-  <link rel="stylesheet" href="/blog/assets/github-dark.min.css">
-  <script src="/blog/assets/highlight.min.js"></script>
-</head>
-<body class="gruvbox">
-  <main>
-    <header class="entry">
-      <a href="/">&larr;</a>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="keywords"
+      content="programming, development, go, rust, typescript, javascript, react, fullstack"
+    />
+    <meta name="description" content="Browsers already have a login form that we can leverage for simple authentication requirements. Let&#39;s explore basic auth." />
+    <title>germandv: Basic Auth And The Browser Login Form</title>
+    <link rel="shortcut icon" href="/assets/favicon.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="/assets/main.css" />
+    <link rel="stylesheet" href="/assets/github-dark.min.css" />
+    <script src="/assets/highlight.min.js"></script>
+  </head>
+  <body class="gruvbox">
+    <main>
+      <header class="entry">
+        <a href="/">&larr;</a>
 
-      
+        
         <div class="dates">
           <time datetime="December 7, 2022"><b>Published</b> December 7, 2022</time>
         </div>
-      
-    </header>
+        
+      </header>
 
-    <h1>Basic Auth And The Browser Login Form</h1>
+      <h1>Basic Auth And The Browser Login Form</h1>
 
-    <div class="excerpt">
-      <p>Browsers already have a login form that we can leverage for simple authentication requirements. Let&#39;s explore basic auth.</p>
-    </div>
+      <div class="excerpt">
+        <p>Browsers already have a login form that we can leverage for simple authentication requirements. Let&#39;s explore basic auth.</p>
+      </div>
 
-    <p>The <em>Basic</em> HTTP authentication scheme is defined in <a href="https://datatracker.ietf.org/doc/html/rfc7617">RFC 7617</a>. Basically, credentials (username and password) are base64 encoded and transmitted in the <em>Authorization</em> header.</p>
+      <p>The <em>Basic</em> HTTP authentication scheme is defined in <a href="https://datatracker.ietf.org/doc/html/rfc7617">RFC 7617</a>. Basically, credentials (username and password) are base64 encoded and transmitted in the <em>Authorization</em> header.</p>
 
 <p>It looks something like this:</p>
 
@@ -363,55 +366,57 @@ func match(a, b string) bool {
 <pre><code>WWW-Authenticate: Basic realm=&quot;foo&quot;, charset=&quot;UTF-8&quot;
 </code></pre>
 
-  </main>
-  
-  <footer>
-      <nav>
-          <div>
-              <a href="/">HOME</a>
-              <a href="/blog/about.html">ABOUT</a>
-              <a href="/feed">RSS</a>
-          </div>
-          <div>
-              <img
-                src="/blog/assets/gruvbox.png"
-                alt="Gruvbox colorscheme"
-                title="Gruvbox"
-                width="125px"
-                onclick="changeTheme('gruvbox');"
-              >
-              <img
-                src="/blog/assets/nord.png"
-                alt="Nord colorscheme"
-                title="Nord"
-                width="125px"
-                onclick="changeTheme('nord');"
-              >
-              <img
-                src="/blog/assets/light.png"
-                alt="Light colorscheme"
-                title="Light"
-                width="125px"
-                onclick="changeTheme('onelight');"
-              >
-          </div>
-      </nav>
-  </footer>
-  <script>
-    function setTheme(name) {
-        window.document.querySelector('body').className = name;
-    }
-    function changeTheme(name) {
-        window.localStorage.setItem('colorscheme', name);
-        setTheme(name);
-    }
-    window.onload = () => {
-        const stored = window.localStorage.getItem('colorscheme');
-        const theme = ['gruvbox', 'nord', 'onelight'].includes(stored) ? stored : 'gruvbox';
-        setTheme(theme);
-    };
-  </script>
+    </main>
+    
+<footer>
+  <nav>
+    <div>
+      <a href="/">HOME</a>
+      <a href="/about.html">ABOUT</a>
+      <a href="/blog/feed.xml">RSS</a>
+    </div>
+    <div>
+      <img
+        src="/assets/gruvbox.png"
+        alt="Gruvbox colorscheme"
+        title="Gruvbox"
+        width="125px"
+        onclick="changeTheme('gruvbox');"
+      />
+      <img
+        src="/assets/nord.png"
+        alt="Nord colorscheme"
+        title="Nord"
+        width="125px"
+        onclick="changeTheme('nord');"
+      />
+      <img
+        src="/assets/light.png"
+        alt="Light colorscheme"
+        title="Light"
+        width="125px"
+        onclick="changeTheme('onelight');"
+      />
+    </div>
+  </nav>
+</footer>
+<script>
+  function setTheme(name) {
+    window.document.querySelector("body").className = name
+  }
+  function changeTheme(name) {
+    window.localStorage.setItem("colorscheme", name)
+    setTheme(name)
+  }
+  window.onload = () => {
+    const stored = window.localStorage.getItem("colorscheme")
+    const theme = ["gruvbox", "nord", "onelight"].includes(stored) ? stored : "gruvbox"
+    setTheme(theme)
+  }
+</script>
 
-  <script>hljs.highlightAll();</script>
-</body>
+    <script>
+      hljs.highlightAll()
+    </script>
+  </body>
 </html>

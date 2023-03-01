@@ -62,7 +62,7 @@ func Generate() error {
 		})
 	}
 
-	tmpl, err := template.ParseFiles(filepath.Join("templates", "feed.rss"))
+	tmpl, err := template.ParseFiles(filepath.Join("templates", "feed.xml"))
 	if err != nil {
 		return err
 	}

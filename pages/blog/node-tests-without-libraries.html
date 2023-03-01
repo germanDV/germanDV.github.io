@@ -1,36 +1,39 @@
 
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="keywords" content="programming, development, go, rust, typescript, javascript, react, fullstack">
-  <meta name="description" content="Let&#39;s test some Javascript code without using any libraries, just a couple of JS files, no package.json, no npm.">
-  <title>germandv: Node Tests Without Libraries</title>
-  <link rel="shortcut icon" href="/blog/assets/favicon.ico" type="image/x-icon">
-  <link rel="stylesheet" href="/blog/assets/main.css">
-  <link rel="stylesheet" href="/blog/assets/github-dark.min.css">
-  <script src="/blog/assets/highlight.min.js"></script>
-</head>
-<body class="gruvbox">
-  <main>
-    <header class="entry">
-      <a href="/">&larr;</a>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="keywords"
+      content="programming, development, go, rust, typescript, javascript, react, fullstack"
+    />
+    <meta name="description" content="Let&#39;s test some Javascript code without using any libraries, just a couple of JS files, no package.json, no npm." />
+    <title>germandv: Node Tests Without Libraries</title>
+    <link rel="shortcut icon" href="/assets/favicon.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="/assets/main.css" />
+    <link rel="stylesheet" href="/assets/github-dark.min.css" />
+    <script src="/assets/highlight.min.js"></script>
+  </head>
+  <body class="gruvbox">
+    <main>
+      <header class="entry">
+        <a href="/">&larr;</a>
 
-      
+        
         <div class="dates">
           <time datetime="December 29, 2022"><b>Published</b> December 29, 2022</time>
         </div>
-      
-    </header>
+        
+      </header>
 
-    <h1>Node Tests Without Libraries</h1>
+      <h1>Node Tests Without Libraries</h1>
 
-    <div class="excerpt">
-      <p>Let&#39;s test some Javascript code without using any libraries, just a couple of JS files, no package.json, no npm.</p>
-    </div>
+      <div class="excerpt">
+        <p>Let&#39;s test some Javascript code without using any libraries, just a couple of JS files, no package.json, no npm.</p>
+      </div>
 
-    <p>We will be using the new <em>test runner</em> module from Node, so make sure to have a current version installed. I&rsquo;m on the latest LTS at the time of this writing: <strong>18.12.1</strong>. The <em>test runner</em> module is experimental (stability: 1). Which means:</p>
+      <p>We will be using the new <em>test runner</em> module from Node, so make sure to have a current version installed. I&rsquo;m on the latest LTS at the time of this writing: <strong>18.12.1</strong>. The <em>test runner</em> module is experimental (stability: 1). Which means:</p>
 
 <blockquote>
 <p>Stability: 1 - Experimental. The feature is not subject to semantic versioning rules. Non-backward compatible changes or removal may occur in any future release. Use of the feature is not recommended in production environments.</p>
@@ -324,55 +327,57 @@ async function rejects(promise) {
 
 <p>Other than the <code>assert.rejects</code> fiasco (which is more than likely on me), I like that node provides a native test runner. But remember that it&rsquo;s unstable and not production-ready yet.</p>
 
-  </main>
-  
-  <footer>
-      <nav>
-          <div>
-              <a href="/">HOME</a>
-              <a href="/blog/about.html">ABOUT</a>
-              <a href="/feed">RSS</a>
-          </div>
-          <div>
-              <img
-                src="/blog/assets/gruvbox.png"
-                alt="Gruvbox colorscheme"
-                title="Gruvbox"
-                width="125px"
-                onclick="changeTheme('gruvbox');"
-              >
-              <img
-                src="/blog/assets/nord.png"
-                alt="Nord colorscheme"
-                title="Nord"
-                width="125px"
-                onclick="changeTheme('nord');"
-              >
-              <img
-                src="/blog/assets/light.png"
-                alt="Light colorscheme"
-                title="Light"
-                width="125px"
-                onclick="changeTheme('onelight');"
-              >
-          </div>
-      </nav>
-  </footer>
-  <script>
-    function setTheme(name) {
-        window.document.querySelector('body').className = name;
-    }
-    function changeTheme(name) {
-        window.localStorage.setItem('colorscheme', name);
-        setTheme(name);
-    }
-    window.onload = () => {
-        const stored = window.localStorage.getItem('colorscheme');
-        const theme = ['gruvbox', 'nord', 'onelight'].includes(stored) ? stored : 'gruvbox';
-        setTheme(theme);
-    };
-  </script>
+    </main>
+    
+<footer>
+  <nav>
+    <div>
+      <a href="/">HOME</a>
+      <a href="/about.html">ABOUT</a>
+      <a href="/blog/feed.xml">RSS</a>
+    </div>
+    <div>
+      <img
+        src="/assets/gruvbox.png"
+        alt="Gruvbox colorscheme"
+        title="Gruvbox"
+        width="125px"
+        onclick="changeTheme('gruvbox');"
+      />
+      <img
+        src="/assets/nord.png"
+        alt="Nord colorscheme"
+        title="Nord"
+        width="125px"
+        onclick="changeTheme('nord');"
+      />
+      <img
+        src="/assets/light.png"
+        alt="Light colorscheme"
+        title="Light"
+        width="125px"
+        onclick="changeTheme('onelight');"
+      />
+    </div>
+  </nav>
+</footer>
+<script>
+  function setTheme(name) {
+    window.document.querySelector("body").className = name
+  }
+  function changeTheme(name) {
+    window.localStorage.setItem("colorscheme", name)
+    setTheme(name)
+  }
+  window.onload = () => {
+    const stored = window.localStorage.getItem("colorscheme")
+    const theme = ["gruvbox", "nord", "onelight"].includes(stored) ? stored : "gruvbox"
+    setTheme(theme)
+  }
+</script>
 
-  <script>hljs.highlightAll();</script>
-</body>
+    <script>
+      hljs.highlightAll()
+    </script>
+  </body>
 </html>
