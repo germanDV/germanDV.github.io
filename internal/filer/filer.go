@@ -13,10 +13,10 @@ var dst string
 func init() {
 	if os.Getenv("ENV") == "testing" {
 		src = "testdata/entries"
-		indexDst = "testdata/pages"
+		indexDst = "testdata/docs"
 	} else {
 		src = "entries"
-		indexDst = "pages"
+		indexDst = "docs"
 	}
 	dst = filepath.Join(indexDst, "blog")
 }

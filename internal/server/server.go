@@ -53,7 +53,7 @@ func (s *Server) Listen() {
 }
 
 func (s *Server) registerStaticHandler() {
-	fs := http.FileServer(http.Dir("./pages"))
+	fs := http.FileServer(http.Dir("./docs"))
 	fsWithTimeout := http.TimeoutHandler(fs, 5*time.Second, "Timeout\n")
 	s.mux.Handle("/", fsWithTimeout)
 }
