@@ -5,7 +5,6 @@ revision: 2022-12-02
 excerpt: I like using a Makefile in my Go projects. These are some tasks that I find useful in pretty much all of them.
 ---
 
-
 Let's start with a simple task, create a _Makefile_ at the root of your project with the contents:
 
 ```makefile
@@ -16,7 +15,6 @@ dev:
 You can now run `make dev` and it will execute the command `air .`.
 
 [Air](https://github.com/cosmtrek/air) is a tool I use for hot-reloading during development, but of course you can run any other command you wish.
-
 
 Makefiles are supposed to deal with files, in our case, we are using it as a task runner, so, we will add the `.PHONY` target to be explicit about that fact:
 
@@ -127,6 +125,26 @@ audit:
   ENV=testing go test -race -vet=off ./...
 ```
 
+Another thing that might come in handy in a makefile, is to read an environemt variable and use a default if it is not present.
+We can achieve that with the following syntax:
+
+```makefile
+SOME_VAR ?= 'i_am_a_default'
+```
+
+We can then use it in any task:
+
+```makefile
+SOME_VAR ?= 'i_am_a_default'
+
+.PHONY: example
+example:
+  @echo 'Value of SOME_VAR is: ${SOME_VAR}'
+```
+
+If you run `make example`, you will get `Value of SOME_VAR is: i_am_a_default`.
+If you run `SOME_VAR=injected make example`, you will get `Value of SOME_VAR is: injected`.
+
 I would normally have one or more build tasks, maybe one to build for the current arch and another one to build for all targets. If I'm working with a database, I would also have tasks to deal with creating, applying and reverting migrations. But these are more project-specific so I won't include them here.
 
 To sum up, this is the entire Makefile:
@@ -169,6 +187,5 @@ deps: confirm
 
 Some of this I have stolen from two great books by Alex Edwards:
 
-* [Let's Go](https://lets-go.alexedwards.net/)
-* [Let's Go Further](https://lets-go-further.alexedwards.net/)
-
+- [Let's Go](https://lets-go.alexedwards.net/)
+- [Let's Go Further](https://lets-go-further.alexedwards.net/)

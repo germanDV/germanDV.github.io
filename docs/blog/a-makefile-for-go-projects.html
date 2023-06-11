@@ -142,6 +142,24 @@ audit:
   ENV=testing go test -race -vet=off ./...
 </code></pre>
 
+<p>Another thing that might come in handy in a makefile, is to read an environemt variable and use a default if it is not present.
+We can achieve that with the following syntax:</p>
+
+<pre><code class="language-makefile">SOME_VAR ?= 'i_am_a_default'
+</code></pre>
+
+<p>We can then use it in any task:</p>
+
+<pre><code class="language-makefile">SOME_VAR ?= 'i_am_a_default'
+
+.PHONY: example
+example:
+  @echo 'Value of SOME_VAR is: ${SOME_VAR}'
+</code></pre>
+
+<p>If you run <code>make example</code>, you will get <code>Value of SOME_VAR is: i_am_a_default</code>.
+If you run <code>SOME_VAR=injected make example</code>, you will get <code>Value of SOME_VAR is: injected</code>.</p>
+
 <p>I would normally have one or more build tasks, maybe one to build for the current arch and another one to build for all targets. If I&rsquo;m working with a database, I would also have tasks to deal with creating, applying and reverting migrations. But these are more project-specific so I won&rsquo;t include them here.</p>
 
 <p>To sum up, this is the entire Makefile:</p>
