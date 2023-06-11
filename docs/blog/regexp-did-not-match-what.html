@@ -1,0 +1,232 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="keywords"
+      content="programming, development, go, rust, typescript, javascript, react, fullstack"
+    />
+    <meta name="description" content="This behaviour of Regular Expressions in JS can drive you crazy debugging. Beware!" />
+    <title>germandv: Regexp Did Not Match What</title>
+    <link rel="shortcut icon" href="/assets/favicon.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="/assets/main.css" />
+    <link rel="stylesheet" href="/assets/github-dark.min.css" />
+    <script src="/assets/highlight.min.js"></script>
+  </head>
+  <body class="gruvbox">
+    <main>
+      <header class="entry">
+        <a href="/">&larr;</a>
+
+        
+        <div class="dates">
+          <time datetime="June 11, 2023"><b>Published</b> June 11, 2023</time>
+        </div>
+        
+      </header>
+
+      <h1>Regexp Did Not Match What</h1>
+
+      <div class="excerpt">
+        <p>This behaviour of Regular Expressions in JS can drive you crazy debugging. Beware!</p>
+      </div>
+
+      <p>To set the stage, let&rsquo;s imagine a simple <em>class</em> with some utilities to deal with product codes.
+Our product codes are very simple, they consist of three uppercase letters, a &lsquo;-&rsquo; and four digits, something like <code>ABC-1234</code>.</p>
+
+<p>Let&rsquo;s start with a single method to check if a given string contains a valid product code,
+maybe it&rsquo;s a weird requirement but let&rsquo;s go with it.</p>
+
+<pre><code class="language-typescript">class ProdUtil {
+  private static readonly ProdCodeRegExp = /[A-Z]{3}-[0-9]{4}/
+
+  static hasValidCode(str: string): boolean {
+    return ProdUtil.ProdCodeRegExp.test(str)
+  }
+}
+</code></pre>
+
+<p>You then use it to check a few strings:</p>
+
+<pre><code class="language-typescript">console.log(ProdUtil.hasValidCode(&quot;2 units of ABC-1234&quot;)) // true
+console.log(ProdUtil.hasValidCode(&quot;5 units of XYZ-4242&quot;)) // true
+console.log(ProdUtil.hasValidCode(&quot;Out of ABC-123&quot;)) // false
+</code></pre>
+
+<p>So far so good.</p>
+
+<p>We have a new requirement, we need the ability to scan some text (an email, a stock report, an invoice, etc.)
+and extract a list of product codes. So we adjust our RegExp to match multiple occurrences (add the <code>g</code> flag), and add a new method:</p>
+
+<pre><code class="language-typescript">class ProdUtil {
+  // Adding the `global` flag.
+  private static readonly ProdCodeRegExp = /[A-Z]{3}-[0-9]{4}/g
+
+  // No changes to this one.
+  static hasValidCode(str: string): boolean {
+    return ProdUtil.ProdCodeRegExp.test(str)
+  }
+
+  // New method.
+  static extractProdCodes(text: string): string[] {
+    // Let's not worry about duplicates.
+    const matches = text.match(ProdUtil.ProdCodeRegExp)
+    return matches || []
+  }
+}
+</code></pre>
+
+<p>We can use our new method to extract the product codes mentioned in a dummy message like so:</p>
+
+<pre><code class="language-typescript">const msg = &quot;Customer A ordered 3 items with code ABC-1234 and 2 items with code DEF-5678&quot;
+console.log(ProdUtil.extractProdCodes(msg)) // [&quot;ABC-1234&quot;, &quot;DEF-5678&quot;]
+</code></pre>
+
+<p>Everything seems fine, until you use the <code>hasValidCode</code> method again. Let&rsquo;s re-run the example above:</p>
+
+<pre><code class="language-typescript">console.log(ProdUtil.hasValidCode(&quot;2 units of ABC-1234&quot;)) // true
+console.log(ProdUtil.hasValidCode(&quot;5 units of XYZ-4242&quot;)) // false!!!!!
+console.log(ProdUtil.hasValidCode(&quot;Out of ABC-123&quot;)) // false
+</code></pre>
+
+<p>Look at the second console.log, it was <code>true</code> (as it should) two minutes ago, what just happened?
+We didn&rsquo;t even touch the <code>hasValidCode</code> method. But we did change the RegExp, we added the <code>g</code> flag.
+And that &ldquo;breaks&rdquo; it.</p>
+
+<p>We don&rsquo;t know what&rsquo;s going on so we just add some more console.logs and try to figure it out:</p>
+
+<pre><code class="language-typescript">console.log(ProdUtil.hasValidCode(&quot;ABC-1234&quot;)) // true
+console.log(ProdUtil.hasValidCode(&quot;ABC-1234&quot;)) // false!!!!!
+console.log(ProdUtil.hasValidCode(&quot;ABC-1234&quot;)) // true
+console.log(ProdUtil.hasValidCode(&quot;ABC-1234&quot;)) // false!!!!!
+</code></pre>
+
+<p>Is it toggling the checks? What?! Is it really because of that <code>g</code>? Let&rsquo;s remove it and try again.</p>
+
+<pre><code class="language-typescript">class ProdUtil {
+  private static readonly ProdCodeRegExp = /[A-Z]{3}-[0-9]{4}/
+  ...
+}
+
+console.log(ProdUtil.hasValidCode(&quot;ABC-1234&quot;)) // true
+console.log(ProdUtil.hasValidCode(&quot;ABC-1234&quot;)) // true
+console.log(ProdUtil.hasValidCode(&quot;ABC-1234&quot;)) // true
+console.log(ProdUtil.hasValidCode(&quot;ABC-1234&quot;)) // true
+</code></pre>
+
+<p>Confirmed. But we want that <code>g</code>, otherwise we break the <code>extractProdCodes</code> method.</p>
+
+<p>We take a step back and look for some documentation / help.</p>
+
+<p>What&rsquo;s going on here is that the RegExp with <code>g</code> remembers what has previously been matched,
+and starts from the last matched index on subsequent executions.
+Totally unexpected outcome if you didn&rsquo;t know that, and a painful bug to track down.</p>
+
+<p>In our example, we&rsquo;re using <code>ProdCodeRegExp</code> in both methods, but technically, the <code>hasValidCode</code> method does
+not need to be global, in practice I would have two different regular expressions.
+But for the sake of exploring, let&rsquo;s say we do need to use the same RegExp in both methods.</p>
+
+<p>One way of avoiding this issue, would be to use a new instance of the RegExp in each invocation,
+that way we don&rsquo;t have to worry about what it remembers.</p>
+
+<pre><code class="language-typescript">class ProdUtil {
+  static hasValidCode(str: string): boolean {
+    return /[A-Z]{3}-[0-9]{4}/g.test(str)
+  }
+
+  static extractProdCodes(text: string): string[] {
+    const matches = text.match(/[A-Z]{3}-[0-9]{4}/g)
+    return matches || []
+  }
+}
+</code></pre>
+
+<p>That works, the risk here is that our future clean-coder-self is going to forget about this thing
+with global RegExp, is going to see the same RegExp being used in two places and is going to extract into
+a common property back again. Re-introducing the bug. Hopefully the second time around it&rsquo;ll be an easy fix.</p>
+
+<p>Alternatively, what we can do, is reset the last index matched by the RegExp. That way it will behave
+like the first time it&rsquo;s invoked, and the code will make it clearer that we&rsquo;re being intentional about something,
+even if we forget what that something is (or if a colleague doesn&rsquo;t know).</p>
+
+<pre><code class="language-typescript">class ProdUtil {
+  private static readonly ProdCodeRegExp = /[A-Z]{3}-[0-9]{4}/g
+
+  static hasValidCode(str: string): boolean {
+    const res = ProdUtil.ProdCodeRegExp.test(str)
+    // Reset last matched index to avoid funny business.
+    ProdUtil.ProdCodeRegExp.lastIndex = 0
+    return res
+  }
+
+  static extractProdCodes(text: string): string[] {
+    const matches = text.match(ProdUtil.ProdCodeRegExp)
+    return matches || []
+  }
+}
+</code></pre>
+
+<p>As the quote goes:</p>
+
+<blockquote>
+<p>Some people, when confronted with a problem, think &ldquo;I know, I&rsquo;ll use regular expressions.&rdquo; Now they have two problems.</p>
+</blockquote>
+
+<p>Be safe out there.</p>
+
+    </main>
+    
+<footer>
+  <nav>
+    <div>
+      <a href="/">HOME</a>
+      <a href="/about.html">ABOUT</a>
+      <a href="/blog/feed.xml">RSS</a>
+    </div>
+    <div>
+      <img
+        src="/assets/gruvbox.png"
+        alt="Gruvbox colorscheme"
+        title="Gruvbox"
+        width="125px"
+        onclick="changeTheme('gruvbox');"
+      />
+      <img
+        src="/assets/nord.png"
+        alt="Nord colorscheme"
+        title="Nord"
+        width="125px"
+        onclick="changeTheme('nord');"
+      />
+      <img
+        src="/assets/light.png"
+        alt="Light colorscheme"
+        title="Light"
+        width="125px"
+        onclick="changeTheme('onelight');"
+      />
+    </div>
+  </nav>
+</footer>
+<script>
+  function setTheme(name) {
+    window.document.querySelector("body").className = name
+  }
+  function changeTheme(name) {
+    window.localStorage.setItem("colorscheme", name)
+    setTheme(name)
+  }
+  window.onload = () => {
+    const stored = window.localStorage.getItem("colorscheme")
+    const theme = ["gruvbox", "nord", "onelight"].includes(stored) ? stored : "gruvbox"
+    setTheme(theme)
+  }
+</script>
+
+    <script>
+      hljs.highlightAll()
+    </script>
+  </body>
+</html>
