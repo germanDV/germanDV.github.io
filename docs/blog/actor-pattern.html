@@ -1,0 +1,221 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="keywords"
+      content="programming, development, go, rust, typescript, javascript, react, fullstack"
+    />
+    <meta name="description" content="Actors provide a nice and simple pattern to develop concurrent programs." />
+    <title>germandv: Actor Pattern</title>
+    <link rel="shortcut icon" href="/assets/favicon.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="/assets/main.css" />
+    <link rel="stylesheet" href="/assets/github-dark.min.css" />
+    <script src="/assets/highlight.min.js"></script>
+  </head>
+  <body class="gruvbox">
+    <main>
+      <header class="entry">
+        <a href="/">&larr;</a>
+
+        
+        <div class="dates">
+          <time datetime="July 31, 2023"><b>Published</b> July 31, 2023</time>
+        </div>
+        
+      </header>
+
+      <h1>Actor Pattern</h1>
+
+      <div class="excerpt">
+        <p>Actors provide a nice and simple pattern to develop concurrent programs.</p>
+      </div>
+
+      <p>The actor model helps us deal with concurrent programs in a way that does not
+require locks.</p>
+
+<p>In a message-driven approach, <em>actors</em>, the main building block of this model,
+receive messages and process them sequentially.</p>
+
+<p>This implementation is made quite simple and easy to follow by the fact that
+our messages are functions that we send to a channel.</p>
+
+<pre><code class="language-go">// Package actor provides a simple actor implementation.
+package actor
+
+import &quot;fmt&quot;
+
+type action func()
+
+// Actor is an entity that processes actions sent to it via its inbox.
+type Actor struct {
+	Name      string
+	InboxSize int
+	inbox     chan action
+}
+
+// ConfigFn is the signature of funcs that configure an actor.
+type ConfigFn func(a *Actor)
+
+const defaultInboxSize = 16
+
+// New creates a new actor and starts its message processing loop.
+func New(fns ...ConfigFn) *Actor {
+	a := &amp;Actor{}
+	a.InboxSize = defaultInboxSize
+	for _, fn := range fns {
+		fn(a)
+	}
+	a.inbox = make(chan action, a.InboxSize)
+	go a.start()
+	return a
+}
+
+// SetInboxSize sets the size of the actor's inbox, which is a chan of funcs.
+// The actor's inbox could be an unbuffered channel, but that would block
+// clients from sending messages to the actor while it is processing a message.
+// By buffering the channel we also ensure that messages up to the size of
+// the buffer are processed in the order they are received.
+// Hence, the recommendation is to use a buffered channel, but you can use an
+// unbuffered one by setting the size to 0.
+func SetInboxSize(size int) ConfigFn {
+	return func(a *Actor) {
+		a.InboxSize = size
+	}
+}
+
+// SetName provides a name for the actor.
+func SetName(name string) ConfigFn {
+	return func(a *Actor) {
+		a.Name = name
+	}
+}
+
+// start kicks off the actor's message processing loop.
+func (a *Actor) start() {
+	for {
+		fn := &lt;-a.inbox
+		fn()
+	}
+}
+
+// Do sends an action to the actor's inbox for processing.
+func (a *Actor) Do(fn action) {
+	a.inbox &lt;- fn
+}
+
+// Try sends an action to the actor's inbox for processing, but does not block
+// if the inbox is full. It just discards the action.
+func (a *Actor) Try(fn action) bool {
+	select {
+	case a.inbox &lt;- fn:
+		return true
+	default:
+		return false
+	}
+}
+
+func (a *Actor) String() string {
+	return fmt.Sprintf(&quot;Actor:%s{InboxSize: %d}&quot;, a.Name, a.InboxSize)
+}
+</code></pre>
+
+<p>And you would use it like so:</p>
+
+<pre><code class="language-go">package main
+
+import (
+	&quot;actors/actor&quot;
+	&quot;fmt&quot;
+	&quot;time&quot;
+)
+
+func main() {
+	// Create actor with the default inbox size
+	a := actor.New()
+
+	// Create actor with a custom inbox size and a name
+	// a := actor.New(actor.SetInboxSize(4), actor.SetName(&quot;MyActor&quot;))
+
+	// Send actions to the actor
+	a.Do(func() { fmt.Println(&quot;Hello&quot;) })
+	a.Do(func() { fmt.Println(&quot;World&quot;) })
+
+	// Send action and wait for a response
+	response := make(chan int)
+	a.Do(func() {
+		ans := 40 + 2
+		response &lt;- ans
+	})
+	fmt.Println(&lt;-response)
+
+	// Send action but discard it if Actor's inbox is full
+	sent := a.Try(func() { fmt.Println(&quot;Goodbye&quot;) })
+	fmt.Println(&quot;Sent action to actor?&quot;, sent)
+
+	fmt.Println(a)
+
+	// Simulate a task that keeps the program alive
+	time.Sleep(1 * time.Second)
+}
+</code></pre>
+
+<p>Hope you find this useful and play around with the actor model if you haven&rsquo;t
+done so yet.</p>
+
+    </main>
+    
+<footer>
+  <nav>
+    <div>
+      <a href="/">HOME</a>
+      <a href="/about.html">ABOUT</a>
+      <a href="/blog/feed.xml">RSS</a>
+    </div>
+    <div>
+      <img
+        src="/assets/gruvbox.png"
+        alt="Gruvbox colorscheme"
+        title="Gruvbox"
+        width="125px"
+        onclick="changeTheme('gruvbox');"
+      />
+      <img
+        src="/assets/nord.png"
+        alt="Nord colorscheme"
+        title="Nord"
+        width="125px"
+        onclick="changeTheme('nord');"
+      />
+      <img
+        src="/assets/light.png"
+        alt="Light colorscheme"
+        title="Light"
+        width="125px"
+        onclick="changeTheme('onelight');"
+      />
+    </div>
+  </nav>
+</footer>
+<script>
+  function setTheme(name) {
+    window.document.querySelector("body").className = name
+  }
+  function changeTheme(name) {
+    window.localStorage.setItem("colorscheme", name)
+    setTheme(name)
+  }
+  window.onload = () => {
+    const stored = window.localStorage.getItem("colorscheme")
+    const theme = ["gruvbox", "nord", "onelight"].includes(stored) ? stored : "gruvbox"
+    setTheme(theme)
+  }
+</script>
+
+    <script>
+      hljs.highlightAll()
+    </script>
+  </body>
+</html>
