@@ -1,0 +1,586 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="keywords"
+      content="programming, development, go, rust, typescript, javascript, react, fullstack"
+    />
+    <meta name="description" content="Working with PostgreSQL in Go, using the pgx library." />
+    <title>germandv: Go And Postgres</title>
+    <link rel="shortcut icon" href="/assets/favicon.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="/assets/main.css" />
+    <link rel="stylesheet" href="/assets/github-dark.min.css" />
+    <script src="/assets/highlight.min.js"></script>
+  </head>
+  <body class="gruvbox">
+    <main>
+      <header class="entry">
+        <a href="/">&larr;</a>
+
+        
+        <div class="dates">
+          <time datetime="October 29, 2023"><b>Published</b> October 29, 2023</time>
+        </div>
+        
+      </header>
+
+      <h1>Go And Postgres</h1>
+
+      <div class="excerpt">
+        <p>Working with PostgreSQL in Go, using the pgx library.</p>
+      </div>
+
+      <p>In this article, we will be working with PostgreSQL in Go, using the <a href="https://github.com/jackc/pgx">pgx</a> library.
+Pgx is a PostgreSQL driver, recommended by <strong>lib/pq</strong>, which is now in maintenance mode.
+The pattterns recommended here are inspired by
+<a href="https://www.youtube.com/watch?v=sXMSWhcHCf8">this talk</a> by pgx&rsquo;s author.</p>
+
+<h2>Setup</h2>
+
+<p>We&rsquo;ll be running Postgres in a Docker container. This will do:</p>
+
+<pre><code class="language-sh">docker run \
+    --name gopgx-postgres \
+    -e POSTGRES_PASSWORD=pass123  \
+    -e POSTGRES_USER=postgres  \
+    -e POSTGRES_DB=example \
+    -p 5432:5432 \
+    -d postgres:15-alpine
+</code></pre>
+
+<p>We&rsquo;ll call the project gopgx:</p>
+
+<pre><code class="language-sh">go mod init gopgx
+</code></pre>
+
+<p>To keep the example focused on pgx, We won&rsquo;t worry about project structure, it will all be in the
+<code>main</code> package. And We&rsquo;ll skip error handling for brevity.</p>
+
+<p>Let&rsquo;s create a db.go file with the connection logic and some initial data for the example:</p>
+
+<pre><code class="language-go">// db.go
+
+package main
+
+import (
+    &quot;context&quot;
+    &quot;time&quot;
+
+    &quot;github.com/jackc/pgx/v5/pgxpool&quot;
+)
+
+// connect establishes a PostgreSQL connection pool.
+func connect(dsn string) (*pgxpool.Pool, error) {
+    cfg, err := pgxpool.ParseConfig(dsn)
+    if err != nil {
+        return nil, err
+    }
+
+    cfg.MaxConnIdleTime = 15 * time.Minute
+
+    pool, err := pgxpool.NewWithConfig(context.Background(), cfg)
+    if err != nil {
+        return nil, err
+    }
+
+    ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+    defer cancel()
+
+    err = pool.Ping(ctx)
+    if err != nil {
+        return nil, err
+    }
+
+    return pool, nil
+}
+
+// seed creates tables and populates them.
+func seed(db *pgxpool.Pool) error {
+  create := `
+    create table if not exists squads(
+      id serial primary key,
+      name text not null unique
+    );
+
+    create table if not exists employees (
+      id serial primary key,
+      fname text not null,
+      lname text not null,
+      position text not null,
+      squad_id int references squads(id)
+    );
+
+    create table if not exists wallets(
+      id serial primary key,
+      address text not null,
+      owner_id int references employees(id) unique
+    );
+  `
+
+  insert := `
+    insert into squads (id, name) values
+       (1, 'Microservice Nonsense'),
+       (2, 'Yaml Developers');
+
+    insert into employees (id, fname, lname, position, squad_id) values
+       (1, 'John', 'Doe', 'FrontEnd Developer', 1),
+       (2, 'Jane', 'Doe', 'FullStack Developer', 1),
+       (3, 'Joe', 'Smith', 'BackEnd Developer', 1),
+       (4, 'Lois', 'Lang', 'BackEnd Developer', 2),
+       (5, 'Keira', 'Gordon', 'FrontEnd Developer', 2);
+
+    insert into wallets (id, address, owner_id) values
+      (1, '0x1234567890123456789012345678901234567891', 1),
+      (2, '0x1234567890123456789012345678901234567892', 2),
+      (3, '0x1234567890123456789012345678901234567893', 3),
+      (4, '0x1234567890123456789012345678901234567894', 4),
+      (5, '0x1234567890123456789012345678901234567895', 5);
+  `
+
+  ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+  defer cancel()
+
+  _, err := db.Exec(ctx, create)
+  if err != nil {
+    return err
+  }
+
+  _, err = db.exec(ctx, insert)
+    if err != nil {
+        return err
+  }
+
+  return nil
+}
+</code></pre>
+
+<p>This is a good time to run <code>go mod tidy</code> so that pgx is installed. I&rsquo;m using v5, the latest as of the time of writing.</p>
+
+<p>In our <code>main.go</code> file we will connect to the DB and seed it:</p>
+
+<pre><code class="language-go">// main.go
+
+// This are all the imports we're going to need.
+import (
+    &quot;flag&quot;
+    &quot;fmt&quot;
+)
+
+func main() {
+    db, _ := connect(&quot;postgres://postgres:pass123@localhost:5432/example&quot;)
+
+    shouldSeed := flag.Bool(&quot;seed&quot;, false, &quot;Setup &amp; Seed Database&quot;)
+    flag.Parse()
+    if *shouldSeed {
+        _ = seed(db)
+        return
+    }
+}
+</code></pre>
+
+<p>We are hardcoding the connection string, in reality you&rsquo;d probably use environment variables.</p>
+
+<p>If we now run <code>go run . -seed</code>, it should successfully connect to the DB, create the tables and
+insert some rows. Check your DB to confirm that everything is working as expected.</p>
+
+<h2>Retrieving Data</h2>
+
+<p>As you might guess from the tables we created, we will be working with three domains, let&rsquo;s create
+some files and define some structs.</p>
+
+<p>Employees:</p>
+
+<pre><code class="language-go">// employee.go
+
+package main
+
+// This are all the imports we're going to need.
+import (
+    &quot;context&quot;
+    &quot;time&quot;
+    &quot;github.com/jackc/pgx/v5&quot;
+    &quot;github.com/jackc/pgx/v5/pgxpool&quot;
+)
+
+type Employee struct {
+    ID        int    `db:&quot;id&quot;`
+    FirstName string `db:&quot;fname&quot;`
+    LastName  string `db:&quot;lname&quot;`
+    Position  string `db:&quot;position&quot;`
+    SquadID   int    `db:&quot;squad_id&quot;`
+}
+</code></pre>
+
+<p>Squads:</p>
+
+<pre><code class="language-go">// squad.go
+
+package main
+
+// This are all the imports we're going to need.
+import (
+    &quot;context&quot;
+    &quot;time&quot;
+    &quot;github.com/jackc/pgx/v5&quot;
+    &quot;github.com/jackc/pgx/v5/pgxpool&quot;
+)
+
+type Squad struct {
+    ID      int        `db:&quot;id&quot;`
+    Name    string     `db:&quot;name&quot;`
+    Members []Employee `db:&quot;members&quot;`
+}
+</code></pre>
+
+<p>Wallets:</p>
+
+<pre><code class="language-go">// wallet.go
+
+package main
+
+// This are all the imports we're going to need.
+import (
+    &quot;context&quot;
+    &quot;time&quot;
+    &quot;github.com/jackc/pgx/v5&quot;
+    &quot;github.com/jackc/pgx/v5/pgxpool&quot;
+)
+
+type Wallet struct {
+    ID      int
+    Address string
+    Owner   *Employee
+}
+</code></pre>
+
+<p>Our first task will be to get all rows from the <code>employees</code> table.</p>
+
+<h3>The database/sql approach</h3>
+
+<p>The &ldquo;standard&rdquo; way that you&rsquo;ve probably seen many times to scan multiple rows would look something like this:</p>
+
+<pre><code class="language-go">func GetEmployees(db *pgxpool.Pool) ([]Employee, error) {
+    ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+    defer cancel()
+
+    employees := []Employee{}
+
+    rows, err := db.Query(ctx, &quot;select id, fname, lname, position, squad_id from employees&quot;)
+    if err != nil {
+        return employees, err
+    }
+
+    for rows.Next() {
+        e := Employee{}
+        err = rows.Scan(&amp;e.ID, &amp;e.FirstName, &amp;e.LastName, &amp;e.Position, &amp;e.SquadID)
+        if err != nil {
+            return employees, err
+        }
+        employees = append(employees, e)
+    }
+
+    if rows.Err() != nil {
+        return employees, err
+    }
+
+    return employees, nil
+}
+</code></pre>
+
+<h3>The pgx approach</h3>
+
+<p>We can leverage pgx to make the above less verbose and less error-prone.</p>
+
+<pre><code class="language-go">// employee.go
+
+// ...
+
+func GetEmployees(db *pgxpool.Pool) ([]Employee, error) {
+    ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+    defer cancel()
+
+    // It is safe to ignore the error here because pgx.CollectRows will handle it.
+    rows, _ := db.Query(ctx, &quot;select id, fname, lname, position, squad_id from employees&quot;)
+
+    // Here we can use pgx.RowToStructByName because our Employee struct has &quot;db&quot; tags
+    // that allow to map column names to struct fields.
+    // If we didn't want to use &quot;db&quot; struct tags, we could have used a different pgx method,
+    // we'll have an example of that later.
+    return pgx.CollectRows(rows, pgx.RowToStructByName[Employee])
+}
+</code></pre>
+
+<h3>Run It</h3>
+
+<p>To run the code and check the results, we can hook it up in our <code>main.go</code> file.</p>
+
+<pre><code class="language-go">// main.go
+
+// ...
+
+func main() {
+    // ...
+
+    fmt.Println(&quot;GetEmployees&quot;)
+    employees, _ := GetEmployees(db)
+    for _, employee := range employees {
+        fmt.Printf(&quot;\t%v\n&quot;, employee)
+    }
+}
+</code></pre>
+
+<p>And then run <code>go run .</code> to have all the employees printed to stdout.</p>
+
+<p><em>I won&rsquo;t be showing this step of hooking things up in <code>main.go</code> from now on, but I encourage you to do so.</em></p>
+
+<p>Let&rsquo;s write a quick example of how to get a single row:</p>
+
+<pre><code class="language-go">// employee.go
+
+// ...
+
+func GetEmployee(db *pgxpool.Pool, id int) (Employee, error) {
+    ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+    defer cancel()
+    rows, _ := db.Query(ctx, &quot;select id, fname, lname, position, squad_id from employees where id = $1&quot;, id)
+    return pgx.CollectOneRow(rows, pgx.RowToStructByName[Employee])
+}
+</code></pre>
+
+<p>We are again using <code>pgx.RowToStructByName</code>, the difference now is that we use <code>pgx.CollectOneRow</code> instead of <code>pgx.CollectRows</code>.</p>
+
+<h3>Nested Structs</h3>
+
+<p>Let&rsquo;s now move to a more interesting example, involving nested structs.
+The <code>Squad</code> struct has a <code>Members</code> field, which is a slice of <code>Employee</code>.
+Our goal is to get all squads with their corresponding members, and we can do so in a single query.</p>
+
+<pre><code>// squad.go
+
+// ...
+
+func GetSquad(db *pgxpool.Pool, id int) (Squad, error) {
+    ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+    defer cancel()
+
+    q := `select s.id, s.name,
+    (
+      select array_agg(
+        row(
+          e.id,
+          e.fname,
+          e.lname,
+          e.position,
+          e.squad_id
+        )
+      )
+      from employees e
+      where e.squad_id = s.id
+    ) as members
+    from squads s
+    where s.id = $1;
+  `
+
+    rows, _ := db.Query(ctx, q, id)
+    return pgx.CollectOneRow(rows, pgx.RowToStructByName[Squad])
+}
+</code></pre>
+
+<p>With the nested select, we get a result set that pgx can scan into our struct, including the nested
+<code>[]Employee</code> field.
+Since we are using <code>pgx.RowToStructByName</code>, it&rsquo;s important that we name the nested select <em>members</em>.
+Another important thing to notice is that this uses Postgres&rsquo; extended protocol, which returns type
+information. If this doesn&rsquo;t work with a cloud-hosted Postgres instance, keep it in mind.</p>
+
+<p>Of course, we can also scan into a nested struct that&rsquo;s not a slice, and that&rsquo;s a pointer.
+We have such scenario in the <code>Wallet</code> struct, which has an <code>Owner</code> field that is a pointer to an
+<code>Employee</code> struct.</p>
+
+<pre><code class="language-go">// wallet.go
+
+// ...
+
+func GetWallet(db *pgxpool.Pool, employeeID int) (Wallet, error) {
+    ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+    defer cancel()
+
+    q := `select w.id, w.address, row(e.id, e.fname, e.lname, e.position, e.squad_id) as owner
+    from wallets w
+    join employees e on w.owner_id = e.id
+    where w.owner_id = $1`
+
+    rows, _ := db.Query(ctx, q, employeeID)
+    return pgx.CollectOneRow(rows, pgx.RowToStructByPos[Wallet])
+}
+</code></pre>
+
+<p>Just to show different options, we are using a <strong>join</strong> instead of a nested <strong>select</strong> in this one.
+Also, you may have noticed we used <code>pgx.RowToStructByPos</code> instead of <code>pgx.RowToStructByName</code>.
+In this case, the mapping from column to struct field is done based on the position of the fields,
+that&rsquo;s why we don&rsquo;t need any &ldquo;db&rdquo; struct tags in <code>Wallet</code>.</p>
+
+<h2>Transactions</h2>
+
+<p>Let&rsquo;s now imagine that we need the ability to have two employees switch squads.
+The switch should happen atomically, meaning, either both employees are transferred successfully or none of them are; we need a transaction.</p>
+
+<h3>The database/sql approach</h3>
+
+<p>A transaction may look something like this:</p>
+
+<pre><code class="language-go">func Switch(db *pgxpool.Pool, empA int, empB int) error {
+    ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+    defer cancel()
+
+    tx, err := db.Begin(ctx)
+    if err != nil {
+        return err
+    }
+
+    // It is safe to call Rollback in a committed transaction.
+    // We can take advantage of this behaviour to defer the rollback instead of having to
+    // manually call it at every error occurence.
+    defer tx.Rollback(ctx)
+
+    q := &quot;select squad_id from employees where id = $1&quot;
+
+    var squadA int
+    err := tx.QueryRow(ctx, q, empA).Scan(&amp;squadA)
+    if err != nil {
+        return err
+    }
+
+    var squadB int
+    err = tx.QueryRow(ctx, q, empB).Scan(&amp;squadB)
+    if err != nil {
+        return err
+    }
+
+    q = &quot;update employees set squad_id = $1 where id = $2&quot;
+
+    _, err = tx.Exec(ctx, q, squadB, empA)
+    if err != nil {
+        return err
+    }
+
+    _, err = tx.Exec(ctx, q, squadA, empB)
+    if err != nil {
+        return err
+    }
+
+    return tx.Commit(ctx)
+}
+</code></pre>
+
+<h3>The pgx approach</h3>
+
+<p>pgx provides a <code>BeginFunc</code> method that automatically starts a transaction and commits it if there
+are no errors, or rolls it back if there are any.</p>
+
+<pre><code class="language-go">// employee.go
+
+// ...
+
+func Switch(db *pgxpool.Pool, empA int, empB int) error {
+    ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+    defer cancel()
+
+    return pgx.BeginFunc(ctx, db, func(tx pgx.Tx) error {
+        // If this function returns an error, the tx is reverted, otherwise the tx is committed.
+        q := &quot;select squad_id from employees where id = $1&quot;
+
+        var squadA int
+        err := tx.QueryRow(ctx, q, empA).Scan(&amp;squadA)
+        if err != nil {
+            return err
+        }
+
+        var squadB int
+        err = tx.QueryRow(ctx, q, empB).Scan(&amp;squadB)
+        if err != nil {
+            return err
+        }
+
+        q = &quot;update employees set squad_id = $1 where id = $2&quot;
+
+        _, err = tx.Exec(ctx, q, squadB, empA)
+        if err != nil {
+            return err
+        }
+
+        _, err = tx.Exec(ctx, q, squadA, empB)
+        if err != nil {
+            return err
+        }
+
+        return nil
+    })
+}
+</code></pre>
+
+<p>Thanks to the possibility of <code>defer tx.Rollback()</code>, I personally don&rsquo;t see <code>pgx.BeginFunc</code> as a huge
+improvement or a much better option, but one could argue it is more readable since deferring the
+rollback could look strange, and some might like that they don&rsquo;t have to manually call commit.</p>
+
+<h2>End</h2>
+
+<p>I have handpicked a few things from pgx that I think are especially useful and not necessarily super clear in the documentation.
+So hopefully this is helpful even for developers who already had some experience working with it.</p>
+
+    </main>
+    
+<footer>
+  <nav>
+    <div>
+      <a href="/">HOME</a>
+      <a href="/about.html">ABOUT</a>
+      <a href="/blog/feed.xml">RSS</a>
+    </div>
+    <div>
+      <img
+        src="/assets/gruvbox.png"
+        alt="Gruvbox colorscheme"
+        title="Gruvbox"
+        width="125px"
+        onclick="changeTheme('gruvbox');"
+      />
+      <img
+        src="/assets/nord.png"
+        alt="Nord colorscheme"
+        title="Nord"
+        width="125px"
+        onclick="changeTheme('nord');"
+      />
+      <img
+        src="/assets/light.png"
+        alt="Light colorscheme"
+        title="Light"
+        width="125px"
+        onclick="changeTheme('onelight');"
+      />
+    </div>
+  </nav>
+</footer>
+<script>
+  function setTheme(name) {
+    window.document.querySelector("body").className = name
+  }
+  function changeTheme(name) {
+    window.localStorage.setItem("colorscheme", name)
+    setTheme(name)
+  }
+  window.onload = () => {
+    const stored = window.localStorage.getItem("colorscheme")
+    const theme = ["gruvbox", "nord", "onelight"].includes(stored) ? stored : "gruvbox"
+    setTheme(theme)
+  }
+</script>
+
+    <script>
+      hljs.highlightAll()
+    </script>
+  </body>
+</html>

@@ -159,6 +159,7 @@ code {
   color: var(--accent-color);
   line-height: 1.5;
   font-size: 0.9rem;
+  margin-bottom: 24px;
 }
 
 img {
