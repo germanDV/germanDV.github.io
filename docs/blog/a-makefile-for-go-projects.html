@@ -23,6 +23,7 @@
         
         <div class="dates">
           <time datetime="December 2, 2022"><b>Published</b> December 2, 2022</time>
+          <time datetime="December 10, 2023"><b>Last Revision</b> December 10, 2023</time>
         </div>
         
       </header>
@@ -160,6 +161,8 @@ example:
 <p>If you run <code>make example</code>, you will get <code>Value of SOME_VAR is: i_am_a_default</code>.
 If you run <code>SOME_VAR=injected make example</code>, you will get <code>Value of SOME_VAR is: injected</code>.</p>
 
+<p>Some other useful tasks to have in a makefile are related to dependency management. <code>govulncheck ./...</code> checks the project dependencies for vulnerabilities. As a result of a vulnerability check, it is common to need to upgrade dependencies, so it comes in handy to have a task to run <code>go get -t -u ./...</code>; or <code>go get -t -u=patch ./...</code> if you just want to upgrade to the latest <em>patch</em> version.</p>
+
 <p>I would normally have one or more build tasks, maybe one to build for the current arch and another one to build for all targets. If I&rsquo;m working with a database, I would also have tasks to deal with creating, applying and reverting migrations. But these are more project-specific so I won&rsquo;t include them here.</p>
 
 <p>To sum up, this is the entire Makefile:</p>
@@ -184,6 +187,8 @@ audit:
   go fmt ./...
   @echo 'Vetting code...'
   go vet ./...
+  @echo 'Checking vulnerabilities...'
+  govulncheck ./...
   @echo 'Running tests...'
   ENV=testing go test -race -vet=off ./...
 
@@ -192,11 +197,30 @@ audit:
 dev:
   ENV=development air .
 
-## deps: install external dependencies not used in source code
-.PHONY: deps
-deps: confirm
-  @echo 'Installing `air` for hot-reloading'
-  go install github.com/cosmtrek/air@latest
+## deps/upgrade/all: upgrade all dependencies
+.PHONY: deps/upgrade/all
+deps/upgrade/all:
+	@echo 'Upgrading dependencies to latest versions...'
+	go get -t -u ./...
+
+## deps/upgrade/patch: upgrade dependencies to latest patch version
+.PHONY: deps/upgrade/patch
+deps/upgrade:
+	@echo 'Upgrading dependencies to latest patch versions...'
+	go get -t -u=patch ./...
+
+## deps/ext: install external dependencies not used in source code
+.PHONY: deps/ext
+deps/ext: confirm
+	@echo 'Installing `air` for hot-reloading'
+	go install github.com/cosmtrek/air@latest
+	@echo 'Installing `tern` for db migrations'
+	go install github.com/jackc/tern/v2@latest
+
+## vuln: check for vulnerabilities
+.PHONY: vuln
+vuln:
+	govulncheck ./...
 </code></pre>
 
 <p>Some of this I have stolen from two great books by Alex Edwards:</p>

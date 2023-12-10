@@ -1,7 +1,7 @@
 ---
 title: a-makefile-for-go-projects
 published: 2022-12-02
-revision: 2022-12-02
+revision: 2023-12-10
 excerpt: I like using a Makefile in my Go projects. These are some tasks that I find useful in pretty much all of them.
 ---
 
@@ -145,6 +145,8 @@ example:
 If you run `make example`, you will get `Value of SOME_VAR is: i_am_a_default`.
 If you run `SOME_VAR=injected make example`, you will get `Value of SOME_VAR is: injected`.
 
+Some other useful tasks to have in a makefile are related to dependency management. `govulncheck ./...` checks the project dependencies for vulnerabilities. As a result of a vulnerability check, it is common to need to upgrade dependencies, so it comes in handy to have a task to run `go get -t -u ./...`; or `go get -t -u=patch ./...` if you just want to upgrade to the latest _patch_ version.
+
 I would normally have one or more build tasks, maybe one to build for the current arch and another one to build for all targets. If I'm working with a database, I would also have tasks to deal with creating, applying and reverting migrations. But these are more project-specific so I won't include them here.
 
 To sum up, this is the entire Makefile:
@@ -170,6 +172,8 @@ audit:
   go fmt ./...
   @echo 'Vetting code...'
   go vet ./...
+  @echo 'Checking vulnerabilities...'
+  govulncheck ./...
   @echo 'Running tests...'
   ENV=testing go test -race -vet=off ./...
 
@@ -178,11 +182,30 @@ audit:
 dev:
   ENV=development air .
 
-## deps: install external dependencies not used in source code
-.PHONY: deps
-deps: confirm
-  @echo 'Installing `air` for hot-reloading'
-  go install github.com/cosmtrek/air@latest
+## deps/upgrade/all: upgrade all dependencies
+.PHONY: deps/upgrade/all
+deps/upgrade/all:
+	@echo 'Upgrading dependencies to latest versions...'
+	go get -t -u ./...
+
+## deps/upgrade/patch: upgrade dependencies to latest patch version
+.PHONY: deps/upgrade/patch
+deps/upgrade:
+	@echo 'Upgrading dependencies to latest patch versions...'
+	go get -t -u=patch ./...
+
+## deps/ext: install external dependencies not used in source code
+.PHONY: deps/ext
+deps/ext: confirm
+	@echo 'Installing `air` for hot-reloading'
+	go install github.com/cosmtrek/air@latest
+	@echo 'Installing `tern` for db migrations'
+	go install github.com/jackc/tern/v2@latest
+
+## vuln: check for vulnerabilities
+.PHONY: vuln
+vuln:
+	govulncheck ./...
 ```
 
 Some of this I have stolen from two great books by Alex Edwards:
