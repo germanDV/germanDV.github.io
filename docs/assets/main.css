@@ -231,6 +231,13 @@ blockquote {
   padding-left: 20px;
 }
 
+.post-list > li {
+  border: 2px solid var(--accent-bg-color);
+  border-radius: 4px;
+  padding: 8px 16px;
+  box-shadow: 0 0 8px var(--accent-bg-color);
+}
+
 footer {
   border-top: 2px solid var(--accent-bg-color);
   margin-top: 48px;
