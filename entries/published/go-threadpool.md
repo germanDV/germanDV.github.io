@@ -2,6 +2,7 @@
 title: go-threadpool
 published: 2022-12-14
 revision: 2022-12-14
+tags: go
 excerpt: In Go, it's generally fine to run hundreds of thousands (even millions) of goroutines. However, you may need to limit them. One of the ways to do so is by implementing a pool of workers or threadpool.
 ---
 

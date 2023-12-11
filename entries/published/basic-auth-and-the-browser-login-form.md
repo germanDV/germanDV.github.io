@@ -2,6 +2,7 @@
 title: basic-auth-and-the-browser-login-form
 published: 2022-12-07
 revision: 2022-12-07
+tags: go
 excerpt: Browsers already have a login form that we can leverage for simple authentication requirements. Let's explore basic auth.
 ---
 

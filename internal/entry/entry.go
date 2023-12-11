@@ -17,6 +17,7 @@ type HtmlEntry struct {
 	Title     string
 	Published string
 	Revision  string
+	Tags      []string
 	Excerpt   string
 	Body      template.HTML
 }
@@ -25,6 +26,7 @@ type MdEntry struct {
 	Title     string
 	Published string
 	Revision  string
+	Tags      string // comma separated
 	Excerpt   string
 }
 
@@ -36,6 +38,7 @@ func NewMdEntry(title string) *MdEntry {
 		Excerpt:   "",
 		Published: date,
 		Revision:  date,
+		Tags:      "",
 	}
 }
 
@@ -46,7 +49,7 @@ func NewHtmlEntry(fm map[string]string) (*HtmlEntry, error) {
 
 	published, ok := fm["published"]
 	if !ok {
-		return nil, errors.New("Missing publish date in front matter")
+		return nil, errors.New("missing publish date in front matter")
 	}
 	formattedPublished, err := FormatDate(published)
 	if err != nil {
@@ -56,7 +59,7 @@ func NewHtmlEntry(fm map[string]string) (*HtmlEntry, error) {
 
 	revision, ok := fm["revision"]
 	if !ok {
-		return nil, errors.New("Missing revision date in front matter")
+		return nil, errors.New("missing revision date in front matter")
 	}
 	formattedRevision, err := FormatDate(revision)
 	if err != nil {
@@ -66,16 +69,23 @@ func NewHtmlEntry(fm map[string]string) (*HtmlEntry, error) {
 
 	title, ok := fm["title"]
 	if !ok {
-		return nil, errors.New("Missing title in front matter")
+		return nil, errors.New("missing title in front matter")
 	}
 	e.Filename = title
 	e.Title = parseTitle(title)
 
 	excerpt, ok := fm["excerpt"]
 	if !ok {
-		return nil, errors.New("Missing excerpt in front matter")
+		return nil, errors.New("missing excerpt in front matter")
 	}
 	e.Excerpt = excerpt
+
+	tags, ok := fm["tags"]
+	if !ok {
+		e.Tags = []string{}
+	} else {
+		e.Tags = strings.Split(tags, ",")
+	}
 
 	return e, nil
 }

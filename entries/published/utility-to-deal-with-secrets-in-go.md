@@ -2,12 +2,13 @@
 title: utility-to-deal-with-secrets-in-go
 published: 2022-11-29
 revision: 2022-11-29
-excerpt: If your code deals, at one point or another, with secrets in plain text, it might be a good idea to prevent accidental logging of such sensitive information. 
+tags: go
+excerpt: If your code deals, at one point or another, with secrets in plain text, it might be a good idea to prevent accidental logging of such sensitive information.
 ---
 
 
 
-Maybe you have a user password in a string during the login/signup process, or an API key that you read from the environment, and you inadvertently log it somewhere. 
+Maybe you have a user password in a string during the login/signup process, or an API key that you read from the environment, and you inadvertently log it somewhere.
 Even if your logs are private, you may not want to disclose sensitive information.
 There might even be regulations that prevent you from keeping certain information in your system.
 Or maybe you are printing some struct for debugging purposes and would like to share the output with someone else to ask for help, but you may have secret information there, that would be more appropriate to leave out.

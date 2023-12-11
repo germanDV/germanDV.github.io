@@ -1,0 +1,91 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="keywords"
+      content="programming, development, go, rust, typescript, javascript, react, fullstack"
+    />
+    <meta name="description" content="Lorem ipsum" />
+    <title>germandv: Testing Tags</title>
+    <link rel="shortcut icon" href="/assets/favicon.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="/assets/main.css" />
+    <link rel="stylesheet" href="/assets/github-dark.min.css" />
+    <script src="/assets/highlight.min.js"></script>
+  </head>
+  <body class="gruvbox">
+    <main>
+      <header class="entry">
+        <a href="/">&larr;</a>
+
+        
+        <div class="dates">
+          <time datetime="December 11, 2023"><b>Published</b> December 11, 2023</time>
+        </div>
+        
+      </header>
+
+      <h1>Testing Tags</h1>
+
+      <div class="excerpt">
+        <p>Lorem ipsum</p>
+      </div>
+
+      <p>We are testing tags for the index page in this case.</p>
+
+    </main>
+    
+<footer>
+  <nav>
+    <div>
+      <a href="/">HOME</a>
+      <a href="/about.html">ABOUT</a>
+      <a href="/blog/feed.xml">RSS</a>
+    </div>
+    <div>
+      <img
+        src="/assets/gruvbox.png"
+        alt="Gruvbox colorscheme"
+        title="Gruvbox"
+        width="125px"
+        onclick="changeTheme('gruvbox');"
+      />
+      <img
+        src="/assets/nord.png"
+        alt="Nord colorscheme"
+        title="Nord"
+        width="125px"
+        onclick="changeTheme('nord');"
+      />
+      <img
+        src="/assets/light.png"
+        alt="Light colorscheme"
+        title="Light"
+        width="125px"
+        onclick="changeTheme('onelight');"
+      />
+    </div>
+  </nav>
+</footer>
+<script>
+  function setTheme(name) {
+    window.document.querySelector("body").className = name
+  }
+  function changeTheme(name) {
+    window.localStorage.setItem("colorscheme", name)
+    setTheme(name)
+  }
+  window.onload = () => {
+    const stored = window.localStorage.getItem("colorscheme")
+    const theme = ["gruvbox", "nord", "onelight"].includes(stored) ? stored : "gruvbox"
+    setTheme(theme)
+  }
+</script>
+
+    <script>
+      hljs.highlightAll()
+    </script>
+  </body>
+</html>

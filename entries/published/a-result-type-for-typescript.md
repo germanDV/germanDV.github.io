@@ -2,6 +2,7 @@
 title: a-result-type-for-typescript
 published: 2022-12-06
 revision: 2022-12-15
+tags: ts
 excerpt: a Result type is an abstraction to communicate the outcome of fallible operations. In the JS world, we are probably more used to throwing errors, but this approach has its advantages, especially in message-based communication.
 ---
 

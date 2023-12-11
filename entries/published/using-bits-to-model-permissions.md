@@ -2,6 +2,7 @@
 title: using-bits-to-model-permissions
 published: 2023-01-26
 revision: 2023-01-26
+tags: ts
 excerpt: While looking for an excuse to use bitwise operators and do some bit manipulation, I thought it would be nice to see how we could model permissions and roles using bits.
 ---
 

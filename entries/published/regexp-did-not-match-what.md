@@ -2,6 +2,7 @@
 title: regexp-did-not-match-what
 published: 2023-06-11
 revision: 2023-06-11
+tags: ts
 excerpt: This behaviour of Regular Expressions in JS can drive you crazy debugging. Beware!
 ---
 

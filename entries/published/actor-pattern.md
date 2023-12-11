@@ -2,6 +2,7 @@
 title: actor-pattern
 published: 2023-07-31
 revision: 2023-07-31
+tags: go
 excerpt: Actors provide a nice and simple pattern to develop concurrent programs.
 ---
 

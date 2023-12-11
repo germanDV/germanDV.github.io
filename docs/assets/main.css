@@ -236,6 +236,14 @@ blockquote {
   border-radius: 4px;
   padding: 8px 16px;
   box-shadow: 0 0 8px var(--accent-bg-color);
+  position: relative;
+}
+
+.post-list > li > .tags {
+  position: absolute;
+  right: 16px;
+  bottom: 8px;
+  display: flex;
 }
 
 footer {
@@ -291,5 +299,8 @@ footer > nav > div > a {
   }
   footer > nav > div:last-child {
     justify-content: center;
+  }
+  .post-list > li > .tags {
+    display: none;
   }
 }

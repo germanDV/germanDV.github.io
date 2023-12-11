@@ -2,6 +2,7 @@
 title: node-tests-without-libraries
 published: 2022-12-29
 revision: 2022-12-29
+tags: node
 excerpt: Let's test some Javascript code without using any libraries, just a couple of JS files, no package.json, no npm.
 ---
 

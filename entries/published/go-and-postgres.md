@@ -2,6 +2,7 @@
 title: go-and-postgres
 published: 2023-10-29
 revision: 2023-10-29
+tags: go,postgres
 excerpt: Working with PostgreSQL in Go, using the pgx library.
 ---
 

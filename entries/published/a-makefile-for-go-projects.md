@@ -2,6 +2,7 @@
 title: a-makefile-for-go-projects
 published: 2022-12-02
 revision: 2023-12-10
+tags: go
 excerpt: I like using a Makefile in my Go projects. These are some tasks that I find useful in pretty much all of them.
 ---
 

@@ -34,7 +34,7 @@ func readFrontMatter(scanner *bufio.Scanner) (map[string]string, error) {
 		} else if openingDelimiterSeen {
 			keyvalue := strings.SplitN(line, ":", 2)
 			if len(keyvalue) != 2 {
-				return nil, errors.New("Invalid front matter key-value pair")
+				return nil, errors.New("invalid front matter key-value pair")
 			}
 			frontMatter[keyvalue[0]] = strings.Trim(keyvalue[1], " ")
 		}
@@ -45,7 +45,7 @@ func readFrontMatter(scanner *bufio.Scanner) (map[string]string, error) {
 		return nil, err
 	}
 
-	return nil, errors.New("No content found")
+	return nil, errors.New("no content found")
 }
 
 func readBody(scanner *bufio.Scanner) ([]byte, error) {
@@ -90,6 +90,7 @@ type PageLink struct {
 	Title       string
 	Date        time.Time
 	DateDisplay string
+	Tags        []string
 }
 
 // GenerateIndex (re)creates the index.html page listing all published entries.
@@ -125,11 +126,17 @@ func GenerateIndex() error {
 			return err
 		}
 
+		tags := strings.Split(frontMatter["tags"], ",")
+		if tags[0] == "" {
+			tags = []string{}
+		}
+
 		links = append(links, PageLink{
 			Link:        file,
 			Title:       title,
 			Date:        date,
 			DateDisplay: dateDisplay,
+			Tags:        tags,
 		})
 	}
 

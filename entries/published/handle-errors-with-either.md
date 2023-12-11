@@ -2,6 +2,7 @@
 title: handle-errors-with-either
 published: 2022-12-28
 revision: 2022-12-28
+tags: ts
 excerpt: With an `Either` construct, we can treat errors as values and handle them in an elegant way.
 ---
 
@@ -65,7 +66,7 @@ export default class Either<L, R, Type extends "Left" | "Right" = "Right"> {
     try {
       // We run the function and wrap the output in an Either.
       // We do it in a try/catch so that the caller does not need
-      // to worry about error handling. If we find an error, 
+      // to worry about error handling. If we find an error,
       // we return a `left` instead of a `right`.
       return Either.right(fn(this.value as R))
     } catch (err) {
@@ -426,7 +427,7 @@ async function addUserData(messages: Message[]): Promise<Message[]> {
   for (const m of messages) {
     await sleep()
     m.from.username = usersDB[m.from.id]
-  } 
+  }
   return messages
 }
 ```

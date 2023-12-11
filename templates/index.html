@@ -23,6 +23,12 @@
             <a href="/blog/{{.Link}}">{{.Title}} &rarr;</a>
             <br />
             <span>{{.DateDisplay}}</span>
+
+            <div class="tags">
+              {{range .Tags}}
+                <img src="/assets/logos/{{.}}.png" alt="{{.}}" width="50" />
+              {{end}}
+            </div>
           </li>
           {{end}}
         </ul>

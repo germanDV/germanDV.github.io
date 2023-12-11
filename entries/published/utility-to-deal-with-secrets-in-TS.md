@@ -2,7 +2,8 @@
 title: utility-to-deal-with-secrets-in-TS
 published: 2022-11-30
 revision: 2022-11-30
-excerpt: If your code deals, at one point or another, with secrets in plain text, it might be a good idea to prevent accidental logging of such sensitive information. 
+tags: ts
+excerpt: If your code deals, at one point or another, with secrets in plain text, it might be a good idea to prevent accidental logging of such sensitive information.
 ---
 
 This is an adaptation of [the post about secrets in Go](./utility-to-deal-with-secrets-in-go.html) that can be used in Node applications, whether using TS or JS.
