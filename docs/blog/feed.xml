@@ -41,14 +41,6 @@
             </item>
         
             <item>
-                <pubDate>December 11, 2023</pubDate>
-                <link>https://germandv.me/blog/testing-tags.html</link>
-                <guid>https://germandv.me/blog/testing-tags.html</guid>
-                <title>Testing Tags</title>
-                <description>Lorem ipsum</description>
-            </item>
-        
-            <item>
                 <pubDate>November 29, 2022</pubDate>
                 <link>https://germandv.me/blog/utility-to-deal-with-secrets-in-go.html</link>
                 <guid>https://germandv.me/blog/utility-to-deal-with-secrets-in-go.html</guid>
