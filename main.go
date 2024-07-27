@@ -87,13 +87,13 @@ func publish() {
 
 	// Publish
 	must(editor.Publish(entryToPublish), fmt.Sprintf("Error publishing entry %q\n", entryToPublish))
-	must(editor.GenerateIndex(), "Error generating index.html")
+	must(editor.GenerateIndex(), "Error generating blog.html")
 	fmt.Printf("%q published!\n", entryToPublish)
 }
 
 func publishAll() {
 	must(editor.PublishAll(), "Error publishing all entries")
-	must(editor.GenerateIndex(), "Error generating index.html")
+	must(editor.GenerateIndex(), "Error generating blog.html")
 	fmt.Println("All entries published!")
 }
 

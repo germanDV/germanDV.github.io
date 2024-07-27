@@ -8,7 +8,7 @@
       name="keywords"
       content="programming, development, go, rust, typescript, javascript, react, fullstack"
     />
-    <meta name="description" content="I like using a Makefile in my Go projects. These are some tasks that I find useful in pretty much all of them." />
+    <meta name="description" content="Useful tasks for Makefiles in Go projects." />
     <title>germandv: A Makefile For Go Projects</title>
     <link rel="shortcut icon" href="/assets/favicon.ico" type="image/x-icon" />
     <link rel="stylesheet" href="/assets/main.css" />
@@ -18,12 +18,12 @@
   <body class="gruvbox">
     <main>
       <header class="entry">
-        <a href="/">&larr;</a>
+        <a href="/blog.html">&larr;</a>
 
         
         <div class="dates">
           <time datetime="December 2, 2022"><b>Published</b> December 2, 2022</time>
-          <time datetime="December 10, 2023"><b>Last Revision</b> December 10, 2023</time>
+          <time datetime="July 27, 2024"><b>Last Revision</b> July 27, 2024</time>
         </div>
         
       </header>
@@ -31,7 +31,7 @@
       <h1>A Makefile For Go Projects</h1>
 
       <div class="excerpt">
-        <p>I like using a Makefile in my Go projects. These are some tasks that I find useful in pretty much all of them.</p>
+        <p>Useful tasks for Makefiles in Go projects.</p>
       </div>
 
       <p>Let&rsquo;s start with a simple task, create a <em>Makefile</em> at the root of your project with the contents:</p>
@@ -42,7 +42,7 @@
 
 <p>You can now run <code>make dev</code> and it will execute the command <code>air .</code>.</p>
 
-<p><a href="https://github.com/cosmtrek/air">Air</a> is a tool I use for hot-reloading during development, but of course you can run any other command you wish.</p>
+<p><a href="https://github.com/cosmtrek/air">Air</a> is a tool I use for hot-reloading during development.</p>
 
 <p>Makefiles are supposed to deal with files, in our case, we are using it as a task runner, so, we will add the <code>.PHONY</code> target to be explicit about that fact:</p>
 
@@ -93,7 +93,7 @@ dev:
   dev  run with hot-reloading.
 </code></pre>
 
-<p>Usually, in my Go projects I would use tools that are not part of the application itself, they are not listed in <em>go.mod</em> so to say. For example, here we are using <em>air</em> for hot-reloading, and if I were to work with a database, I would use something like <a href="https://github.com/golang-migrate/migrate">migrate</a> to handle database migrations.</p>
+<p>Usually, in my Go projects I would use tools that are not part of the application itself, they are not listed in <em>go.mod</em> so to say. For example, here we are using <em>air</em> for hot-reloading, and if I were to work with a database, I would use something like <a href="https://github.com/jackc/tern">tern</a> to handle migrations.</p>
 
 <p>I like having one task that consolidates these dependencies, so that it&rsquo;s clear for developers joining the project what tools are used, and they can install them with a single command:</p>
 
@@ -143,7 +143,7 @@ audit:
   ENV=testing go test -race -vet=off ./...
 </code></pre>
 
-<p>Another thing that might come in handy in a makefile, is to read an environemt variable and use a default if it is not present.
+<p>Another thing that might come in handy in a makefile is to read an environemt variable and use a default if it is not present.
 We can achieve that with the following syntax:</p>
 
 <pre><code class="language-makefile">SOME_VAR ?= 'i_am_a_default'
@@ -236,7 +236,7 @@ vuln:
   <nav>
     <div>
       <a href="/">HOME</a>
-      <a href="/about.html">ABOUT</a>
+      <a href="/blog.html">BLOG</a>
       <a href="/blog/feed.xml">RSS</a>
     </div>
     <div>

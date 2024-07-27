@@ -65,7 +65,7 @@ func ListPages() ([]string, error) {
 		if !file.IsDir() &&
 			strings.HasSuffix(name, ".html") &&
 			name != "index.html" &&
-			name != "about.html" {
+			name != "blog.html" {
 			pages = append(pages, name)
 		}
 	}
@@ -90,9 +90,9 @@ func CreateFeed() (*os.File, error) {
 	return os.Create(filepath.Join(dst, "feed.xml"))
 }
 
-// CreateIndex creates `index.html`
+// CreateIndex creates `blog.html`
 func CreateIndex() (*os.File, error) {
-	return os.Create(filepath.Join(indexDst, "index.html"))
+	return os.Create(filepath.Join(indexDst, "blog.html"))
 }
 
 // CreatePages creates an html file

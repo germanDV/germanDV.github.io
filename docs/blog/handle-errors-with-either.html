@@ -8,7 +8,7 @@
       name="keywords"
       content="programming, development, go, rust, typescript, javascript, react, fullstack"
     />
-    <meta name="description" content="With an `Either` construct, we can treat errors as values and handle them in an elegant way." />
+    <meta name="description" content="With an `Either` monad we can treat errors as values and handle them in an elegant way." />
     <title>germandv: Handle Errors With Either</title>
     <link rel="shortcut icon" href="/assets/favicon.ico" type="image/x-icon" />
     <link rel="stylesheet" href="/assets/main.css" />
@@ -18,7 +18,7 @@
   <body class="gruvbox">
     <main>
       <header class="entry">
-        <a href="/">&larr;</a>
+        <a href="/blog.html">&larr;</a>
 
         
         <div class="dates">
@@ -30,7 +30,7 @@
       <h1>Handle Errors With Either</h1>
 
       <div class="excerpt">
-        <p>With an `Either` construct, we can treat errors as values and handle them in an elegant way.</p>
+        <p>With an `Either` monad we can treat errors as values and handle them in an elegant way.</p>
       </div>
 
       <p>In <a href="/blog/a-result-type-for-typescript.html">A Result Type For Typescript</a>, we created a small abstraction so that we could handle errors in a way that does not require the typical throwing-and-catching pattern.</p>
@@ -39,7 +39,7 @@
 
 <p>We will create an <code>Either</code> class that will wrap a value. We will be able to apply functions to that value using a <code>map()</code> method, which will return another <code>Either</code>, that way, we can keep chaining operations.</p>
 
-<p><code>Either</code>, as its name indicates, can have one of two values, I&rsquo;m quite tempted to call them <em>error</em> and <em>value</em>, but I think these are known as <em>Left</em> and <em>Right</em> in the FP world, so let&rsquo;s stick to the convention. If we run into an error, we will represent it as a <em>Left</em> value; <em>Right</em> will represent the happy path.</p>
+<p><code>Either</code>, as its name indicates, can have one of two values, these are known as <em>Left</em> and <em>Right</em> in the FP world. If we run into an error, we will represent it as a <em>Left</em> value; <em>Right</em> will represent the happy path.</p>
 
 <p>When <code>map</code>ping over an <code>Either</code>, if the value is a <em>Left</em>, it will do nothing and simply return the <code>Either</code> instance. If it is a <em>Right</em>, it will apply the provided function and return the output wrapped in an <code>Either</code>.</p>
 
@@ -92,7 +92,7 @@ export default class Either&lt;L, R, Type extends &quot;Left&quot; | &quot;Right
     try {
       // We run the function and wrap the output in an Either.
       // We do it in a try/catch so that the caller does not need
-      // to worry about error handling. If we find an error, 
+      // to worry about error handling. If we find an error,
       // we return a `left` instead of a `right`.
       return Either.right(fn(this.value as R))
     } catch (err) {
@@ -171,7 +171,7 @@ console.log(n)
 
 <p>That&rsquo;s good, we have a <code>type</code> <em>Left</em> and the <code>value</code> now holds the error.</p>
 
-<p>One of the nice things about <code>Either</code>, is that if we had run into an error earlier, subsequent calls to <code>map</code> would not cause any issues. They&rsquo;d just do nothing more than returning the <code>Either</code> with its <em>Left</em> value. In the example above, the last <code>map</code> call is the offending one, let&rsquo;s move it up and check that the results are the same.</p>
+<p>One of the nice things about <code>Either</code> is that if we had run into an error earlier, subsequent calls to <code>map</code> would not cause any issues. They&rsquo;d just do nothing more than returning the <code>Either</code> with its <em>Left</em> value. In the example above, the last <code>map</code> call is the offending one, let&rsquo;s move it up and check that the results are the same.</p>
 
 <pre><code class="language-typescript">const n = Either.from(4)
   .map(divider(0))
@@ -224,7 +224,7 @@ if (result instanceof Error) {
 
 <p>Try the code above dividing by zero too.</p>
 
-<p><code>unwrap</code> is nice. Although I&rsquo;m not totally sold on the idea of having to do the conditional check on the return value to know if we have an error, it&rsquo;s a useful method to have. But what if I don&rsquo;t care too much about handling the error and want a default value instead? We could of course use <code>unwrap</code> and assign the default value after checking if we have an error, but I think it would be more convenient to expose a method to handle that. Let&rsquo;s call it <code>or</code>:</p>
+<p><code>unwrap</code> is nice. But what if I don&rsquo;t care too much about handling the error and want a default value instead? Let&rsquo;s have an <code>or</code> method for that:</p>
 
 <pre><code class="language-typescript">// either.ts
 
@@ -290,7 +290,7 @@ n.either(errHandler, okHandler)
 
 <p>The code above outputs <code>[OK] -32</code>, and if you change it to divide by zero, you&rsquo;ll get <code>[ERROR] Error: cannot divide by zero</code>.</p>
 
-<p>With this, we have the basics of our <code>Either</code> monad (I think this is a monad, but who knows&hellip;), and we can move to a more realistic example.</p>
+<p>With this, we have the basics of our <code>Either</code> monad and we can move to a more realistic example.</p>
 
 <h2>Example</h2>
 
@@ -397,7 +397,7 @@ async function main() {
 main()
 </code></pre>
 
-<p>The code above outputs <code>You have 2 unread messages</code>. Try messing up one of the rows in the csv file (like changing the URL to an invalid one) and you will see the error instead. Very nice, but what happens if we need to run async code?</p>
+<p>The code above outputs <code>You have 2 unread messages</code>. Try messing up one of the rows in the csv file (like changing the URL to an invalid one) and you will see the error instead. What happens if we need to run async code?</p>
 
 <h2>Async</h2>
 
@@ -433,7 +433,7 @@ async function addUserData(messages: Message[]): Promise&lt;Message[]&gt; {
   for (const m of messages) {
     await sleep()
     m.from.username = usersDB[m.from.id]
-  } 
+  }
   return messages
 }
 </code></pre>
@@ -623,7 +623,7 @@ main()
 }
 </code></pre>
 
-<p>And that&rsquo;s it, our <code>Either</code> monad to handle fallible operations in an elegant, and hopefully readable and clear way.</p>
+<p>.</p>
 
     </main>
     
@@ -631,7 +631,7 @@ main()
   <nav>
     <div>
       <a href="/">HOME</a>
-      <a href="/about.html">ABOUT</a>
+      <a href="/blog.html">BLOG</a>
       <a href="/blog/feed.xml">RSS</a>
     </div>
     <div>

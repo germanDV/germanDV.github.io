@@ -3,7 +3,7 @@ title: a-result-type-for-typescript
 published: 2022-12-06
 revision: 2022-12-15
 tags: ts
-excerpt: a Result type is an abstraction to communicate the outcome of fallible operations. In the JS world, we are probably more used to throwing errors, but this approach has its advantages, especially in message-based communication.
+excerpt: a Result type is an abstraction to communicate the outcome of fallible operations. In the JS world, we are more used to throwing errors, but this approach has its advantages, especially in message-based communication.
 ---
 
 When dealing with fallible operations (things that can produce an error), it is normal to _throw_ the error and _catch_ it somewhere else. Or, if the fallible operation is async, reject a _promise_, (or use the "error-first" callback pattern). This has the advantage of being a well-known pattern, so anybody new to the project will quickly understand it.
@@ -16,24 +16,20 @@ Let's say the main process sends a message to the background process asking it t
 But what about errors? Many things can go wrong in the background process.
 One idea would be to send `null` or `undefined` as the `data` message, but we loose the ability to communicate information about the error to the main process.
 
-An alternative would be to send an `error` message, instead of a `data` one. This implies that the main process needs two listeners, one for `data` and one for `error`. And what do we do if we have many of this kind of transactions between main and background? Should we have a different error channel for each, or a single one to communicate all errors? Both ways would work just fine, and this could be a good approach, especially if you plan to handle all errors the same way in the main process.
+An alternative would be to send an `error` message, instead of a `data` one. This implies that the main process needs two listeners, one for `data` and one for `error`. And what do we do if we have many of this kind of transactions between main and background? Should we have a different error channel for each, or a single one to communicate all errors?
 
-But I didn't like the idea of having channels dedicated to errors. I wanted to communicate errors or values the same way, and to do it in a TS-friendly way, so I can have type information available without any casting or type guarding.
+Both ways would work just fine. But I didn't like the idea of having channels dedicated to errors. I wanted to communicate errors or values the same way, and to do it in a TS-friendly way, so I can have type information available without any casting or type guarding.
 
-That's when I came across an article suggesting an approximation of Rust's `Result` for TS. I wish I could find the article to link it here, unfortunately I didn't save it and it's been a while, but I'll try to find it and edit this post as soon as I do.
-
-The implementation itself is quite simple, it's just this:
+That's when `Result` comes in. The implementation itself is quite simple, it's just this:
 
 ```typescript
 type Result<E, V> = { status: "error"; error: E } | { status: "success"; value: V }
 ```
 
-The _status_ flag and the _union_ allow TS to infer which one of those two types we are working with based on the value of `status`.
-
-At first, I was using a boolean flag to tell errors from successes, `{ success: false; error: E } | { success: true, value: V }` that is. But after running into some TS quirks, I realized it's much easier on TS to use a string here. If you feel like experimenting, try the boolean option and compile your code with `tsc`, run it with `ts-node`, copy/paste in the typescript playground, and you'll probably run into the same inconsistencies I have.
+The _status_ flag and the _union_ allow TS to infer which one of those two types we are working with based on the value of `status` (it's a _discriminated union_).
 
 You may be wondering why not make `Result` generic over the `value` only, instead of both the `error` and the `value`. So, instead of `Result<E, V>`, just `Result<V>`, and then `{ status: "error", error: Error }`.
-That would work too, especially if you are not planning on using custom errors, but I am. And if I run into a scenario where I don't have a custom error to use, I simply use `Error`. So that's the only reason, the flexibility.
+That would work too, especially if you are not planning on using custom errors, but I am.
 
 Let's go through an example. Imagine we have a voting platform, where we have several proposals and users can vote _Yes_ or _No_. We will create a `Ballot` type like so:
 
@@ -128,7 +124,7 @@ const _a = ballotResult.status === "success"
   : ballotResult.error.name
 ```
 
-A week or so after originally writing this article, while working on a new article about Node worker threads, I found out that Node is using this exact same approach for its `PromiseSettledResult`, it looks something like:
+Node is using this exact same approach for its `PromiseSettledResult`, it looks something like:
 
 ```typescript
 interface PromiseFulfilledResult<T> {
@@ -144,8 +140,4 @@ interface PromiseRejectedResult {
 type PromiseSettledResult<T> = PromiseFulfilledResult<T> | PromiseRejectedResult;
 ```
 
-Isn't that great? I feel more confident introducing this pattern to a team having an example of its usage in Node itself. Also, remember that I said using booleans instead of a _status_ string was causing some inconsistencies? It's good to see that Node also uses a _status_ string.
-
-I like the idea of introducing two interfaces, in our case they could be `ResultSuccess` and `ResultError` for example, but I also like the idea of not introducing too many types. So, I'll leave this example as is, but depending on the project, I may go with the additional interfaces in certain circumstances.
-
-That's it.
+.

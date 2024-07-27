@@ -6,7 +6,7 @@ tags: go
 excerpt: In Go, it's generally fine to run hundreds of thousands (even millions) of goroutines. However, you may need to limit them. One of the ways to do so is by implementing a pool of workers or threadpool.
 ---
 
-If you have some background with _Node_, as I do, you've probably seen the pattern where you spawn one instance of your program per CPU. Goroutines are not like that, you can run hundreds of thousands of them, even millions. That's because goroutines are **green threads**, not **os threads**. They are handled by Go and not by the OS directly.
+You can run hundreds of thousands of goroutines because they are **green threads**, not **os threads**. They are handled by Go and not by the OS directly.
 
 Go handles the management of os threads. If you need to control the number of operating system threads allocated, you can use `GOMAXPROCS`. By default, Go programs run with `GOMAXPROCS` set to the number of cores available. So, most of the times, you needn't worry about it.
 
@@ -108,7 +108,7 @@ func calcArea(pointStr string) {
 }
 ```
 
-We could read the entire file into memory instead of using a stream, depending on the size of the file, you may prefer one or the other. Generally speaking, I prefer working with streams to know my programs can handle files of any size.
+We could read the entire file into memory instead of using a stream, depending on the size of the file you may prefer one or the other. Generally speaking, I prefer working with streams to know my programs can handle files of any size.
 
 It would look something like:
 
@@ -131,7 +131,7 @@ go run cmd/single/main.go
 
 For me, it's around 3.7 seconds, but your results may be totally different. Check it out.
 
-Let's now use a threadpool. We will first imagine the kind of API we want it to expose and then build it, it's a nice design technique in my opinion.
+Let's now use a threadpool. We will first imagine the kind of API we want it to expose and then build it.
 
 I want to be able to:
 
@@ -224,8 +224,6 @@ func calcArea(pointStr string) {
   fmt.Println(math.Abs(area) / 2.0)
 }
 ```
-
-For this implementation, I decided that the constructor, the `New` function, would take both the number of threads and the function that the workers need to run. You may prefer to provide the task at a later point. But I figured this was the simplest way of explaining it and creating a brief but somewhat real example.
 
 Let's have a first go at the threadpool implementation:
 
@@ -394,7 +392,7 @@ func main() {
 
 If you run the code now, you should see the expected output, the three areas and the "_Done in x_" message. You can now switch back to _polygons.txt_ instead of _mini.txt_, and get rid of the `time.Sleep(200 * time.Millisecond)` line in `calcArea`.
 
-Running the code with a pool of 1k threads, takes around 2 secs for me, compared to the ~3.7 of the initial version, that's a nice improvement, and we had fun building a threadpool, a good day at the office.
+Running the code with a pool of 1k threads, takes around 2 secs for me, compared to the ~3.7 of the initial version, that's a nice improvement, and we had fun building a threadpool.
 
 Before we wrap up, one last thing that might come in handy is checking the number of goroutines we're using. This is helpful to confirm our understanding and you might use it if you play around with this implementation and are not sure the threadpool is keeping the expected cap on the number of goroutines.
 

@@ -1,9 +1,9 @@
 ---
 title: a-makefile-for-go-projects
 published: 2022-12-02
-revision: 2023-12-10
+revision: 2024-07-27
 tags: go
-excerpt: I like using a Makefile in my Go projects. These are some tasks that I find useful in pretty much all of them.
+excerpt: Useful tasks for Makefiles in Go projects.
 ---
 
 Let's start with a simple task, create a _Makefile_ at the root of your project with the contents:
@@ -15,7 +15,7 @@ dev:
 
 You can now run `make dev` and it will execute the command `air .`.
 
-[Air](https://github.com/cosmtrek/air) is a tool I use for hot-reloading during development, but of course you can run any other command you wish.
+[Air](https://github.com/cosmtrek/air) is a tool I use for hot-reloading during development.
 
 Makefiles are supposed to deal with files, in our case, we are using it as a task runner, so, we will add the `.PHONY` target to be explicit about that fact:
 
@@ -71,7 +71,7 @@ Usage:
   dev  run with hot-reloading.
 ```
 
-Usually, in my Go projects I would use tools that are not part of the application itself, they are not listed in _go.mod_ so to say. For example, here we are using _air_ for hot-reloading, and if I were to work with a database, I would use something like [migrate](https://github.com/golang-migrate/migrate) to handle database migrations.
+Usually, in my Go projects I would use tools that are not part of the application itself, they are not listed in _go.mod_ so to say. For example, here we are using _air_ for hot-reloading, and if I were to work with a database, I would use something like [tern](https://github.com/jackc/tern) to handle migrations.
 
 I like having one task that consolidates these dependencies, so that it's clear for developers joining the project what tools are used, and they can install them with a single command:
 
@@ -126,7 +126,7 @@ audit:
   ENV=testing go test -race -vet=off ./...
 ```
 
-Another thing that might come in handy in a makefile, is to read an environemt variable and use a default if it is not present.
+Another thing that might come in handy in a makefile is to read an environemt variable and use a default if it is not present.
 We can achieve that with the following syntax:
 
 ```makefile

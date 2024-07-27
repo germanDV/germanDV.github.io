@@ -18,7 +18,7 @@
   <body class="gruvbox">
     <main>
       <header class="entry">
-        <a href="/">&larr;</a>
+        <a href="/blog.html">&larr;</a>
 
         
         <div class="dates">
@@ -40,7 +40,7 @@
 <pre><code>Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
 </code></pre>
 
-<p>Let&rsquo;s go through an example. Imagine I have a <code>/admin</code> route in this site (I don&rsquo;t but I may add one to edit posts, maybe). Since it&rsquo;s only me who would be accessing that route, and I don&rsquo;t have any other private resources, I figure basic auth is good enough, and it will save a lot of work.</p>
+<p>Let&rsquo;s go through an example. Imagine I have a <code>/admin</code> route in this site. Since it&rsquo;s only me who would be accessing that route, and I don&rsquo;t have any other private resources, I figure basic auth is good enough, and it will save a lot of work.</p>
 
 <p>First thing that happens is that the browser GETs <code>/admin</code>. The server must return a <strong>401</strong> and the header <code>WWW-Authenticate: Basic</code>. When the browser gets this response, it will display a login prompt, asking users to enter username and password.</p>
 
@@ -255,7 +255,7 @@ func validCredentials(candidateUsername, candidatePassword string) bool {
 }
 </code></pre>
 
-<p>Everything should still be working the same way. One final thing I&rsquo;d like to address is the fact that our <code>validCredentials</code> function is not the safest, it&rsquo;s vulnerable to timing attacks. When we compare <code>candidatePassword != password</code>, the more correct characters we have, the longer it will take the function to return, which means an attacker could eventually discover the password, one character at a time, by meassuring the response time (the same goes for the username of course, for any string comparison).</p>
+<p>Everything should still be working the same way. One final thing I&rsquo;d like to address is the fact that our <code>validCredentials</code> function is not the safest, it&rsquo;s vulnerable to timing attacks. When we compare <code>candidatePassword != password</code>, the more correct characters we have, the longer it will take the function to return, which means an attacker could eventually discover the password, one character at a time, by meassuring the response time.</p>
 
 <p>To prevent this, Go provides us with <code>subtle.ConstantTimeCompare</code>. One caveat, the comparison will be in constant time as long as both inputs are of the same length, so, as an extra security meassure, we will hash the inputs before comparison. It doesn&rsquo;t really matter how we hash them, the important part here is not the hashing algorithm, but the fact that we produce same-length inputs.</p>
 
@@ -372,7 +372,7 @@ func match(a, b string) bool {
   <nav>
     <div>
       <a href="/">HOME</a>
-      <a href="/about.html">ABOUT</a>
+      <a href="/blog.html">BLOG</a>
       <a href="/blog/feed.xml">RSS</a>
     </div>
     <div>

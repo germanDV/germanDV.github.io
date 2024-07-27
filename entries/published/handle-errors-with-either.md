@@ -3,7 +3,7 @@ title: handle-errors-with-either
 published: 2022-12-28
 revision: 2022-12-28
 tags: ts
-excerpt: With an `Either` construct, we can treat errors as values and handle them in an elegant way.
+excerpt: With an `Either` monad we can treat errors as values and handle them in an elegant way.
 ---
 
 In [A Result Type For Typescript](/blog/a-result-type-for-typescript.html), we created a small abstraction so that we could handle errors in a way that does not require the typical throwing-and-catching pattern.
@@ -12,7 +12,7 @@ We will take it a step further and have a construct that will also allow us to c
 
 We will create an `Either` class that will wrap a value. We will be able to apply functions to that value using a `map()` method, which will return another `Either`, that way, we can keep chaining operations.
 
-`Either`, as its name indicates, can have one of two values, I'm quite tempted to call them _error_ and _value_, but I think these are known as _Left_ and _Right_ in the FP world, so let's stick to the convention. If we run into an error, we will represent it as a _Left_ value; _Right_ will represent the happy path.
+`Either`, as its name indicates, can have one of two values, these are known as _Left_ and _Right_ in the FP world. If we run into an error, we will represent it as a _Left_ value; _Right_ will represent the happy path.
 
 When `map`ping over an `Either`, if the value is a _Left_, it will do nothing and simply return the `Either` instance. If it is a _Right_, it will apply the provided function and return the output wrapped in an `Either`.
 
@@ -151,7 +151,7 @@ Either {
 
 That's good, we have a `type` _Left_ and the `value` now holds the error.
 
-One of the nice things about `Either`, is that if we had run into an error earlier, subsequent calls to `map` would not cause any issues. They'd just do nothing more than returning the `Either` with its _Left_ value. In the example above, the last `map` call is the offending one, let's move it up and check that the results are the same.
+One of the nice things about `Either` is that if we had run into an error earlier, subsequent calls to `map` would not cause any issues. They'd just do nothing more than returning the `Either` with its _Left_ value. In the example above, the last `map` call is the offending one, let's move it up and check that the results are the same.
 
 
 ```typescript
@@ -208,7 +208,7 @@ if (result instanceof Error) {
 
 Try the code above dividing by zero too.
 
-`unwrap` is nice. Although I'm not totally sold on the idea of having to do the conditional check on the return value to know if we have an error, it's a useful method to have. But what if I don't care too much about handling the error and want a default value instead? We could of course use `unwrap` and assign the default value after checking if we have an error, but I think it would be more convenient to expose a method to handle that. Let's call it `or`:
+`unwrap` is nice. But what if I don't care too much about handling the error and want a default value instead? Let's have an `or` method for that:
 
 ```typescript
 // either.ts
@@ -278,7 +278,7 @@ n.either(errHandler, okHandler)
 
 The code above outputs `[OK] -32`, and if you change it to divide by zero, you'll get `[ERROR] Error: cannot divide by zero`.
 
-With this, we have the basics of our `Either` monad (I think this is a monad, but who knows...), and we can move to a more realistic example.
+With this, we have the basics of our `Either` monad and we can move to a more realistic example.
 
 ## Example
 
@@ -389,7 +389,7 @@ async function main() {
 main()
 ```
 
-The code above outputs `You have 2 unread messages`. Try messing up one of the rows in the csv file (like changing the URL to an invalid one) and you will see the error instead. Very nice, but what happens if we need to run async code?
+The code above outputs `You have 2 unread messages`. Try messing up one of the rows in the csv file (like changing the URL to an invalid one) and you will see the error instead. What happens if we need to run async code?
 
 ## Async
 
@@ -622,4 +622,4 @@ export default class Either<L, R, Type extends "Left" | "Right" = "Right"> {
 }
 ```
 
-And that's it, our `Either` monad to handle fallible operations in an elegant, and hopefully readable and clear way.
+.

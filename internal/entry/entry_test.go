@@ -40,7 +40,7 @@ func TestNewHTMLEntry(t *testing.T) {
 				"excerpt":  "",
 			},
 			output: nil,
-			err:    errors.New("Missing publish date in front matter"),
+			err:    errors.New("missing publish date in front matter"),
 		},
 		{
 			input: map[string]string{
@@ -59,7 +59,7 @@ func TestNewHTMLEntry(t *testing.T) {
 				"excerpt":   "",
 			},
 			output: nil,
-			err:    errors.New("Missing revision date in front matter"),
+			err:    errors.New("missing revision date in front matter"),
 		},
 		{
 			input: map[string]string{
@@ -68,7 +68,7 @@ func TestNewHTMLEntry(t *testing.T) {
 				"excerpt":   "",
 			},
 			output: nil,
-			err:    errors.New("Missing title in front matter"),
+			err:    errors.New("missing title in front matter"),
 		},
 		{
 			input: map[string]string{
@@ -77,7 +77,7 @@ func TestNewHTMLEntry(t *testing.T) {
 				"title":     "a-title",
 			},
 			output: nil,
-			err:    errors.New("Missing excerpt in front matter"),
+			err:    errors.New("missing excerpt in front matter"),
 		},
 		{
 			input: map[string]string{

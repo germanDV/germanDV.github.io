@@ -137,5 +137,4 @@ func main() {
 }
 ```
 
-Hope you find this useful and play around with the actor model if you haven't
-done so yet.
+.

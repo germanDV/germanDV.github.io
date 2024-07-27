@@ -289,8 +289,3 @@ Some things worth noticing:
 
 * We are using `test` instead of `describe` and `it`. When using `test`, the callback receives a `t` argument that we can use to call subtests, call hooks like `beforeEach`, and more. So, generally speaking, I would prefer `test` over `describe` and `it`.
 * When using `test`, it is important to **always `await` subtests, even if they are not async**, from the docs: "_This is necessary because parent tests do not wait for their subtests to complete. Any subtests that are still outstanding when their parent finishes are cancelled and treated as failures._".
-
-<br />
-## Conclusion
-
-Other than the `assert.rejects` fiasco (which is more than likely on me), I like that node provides a native test runner. But remember that it's unstable and not production-ready yet.

@@ -8,7 +8,7 @@
       name="keywords"
       content="programming, development, go, rust, typescript, javascript, react, fullstack"
     />
-    <meta name="description" content="a Result type is an abstraction to communicate the outcome of fallible operations. In the JS world, we are probably more used to throwing errors, but this approach has its advantages, especially in message-based communication." />
+    <meta name="description" content="a Result type is an abstraction to communicate the outcome of fallible operations. In the JS world, we are more used to throwing errors, but this approach has its advantages, especially in message-based communication." />
     <title>germandv: A Result Type For Typescript</title>
     <link rel="shortcut icon" href="/assets/favicon.ico" type="image/x-icon" />
     <link rel="stylesheet" href="/assets/main.css" />
@@ -18,7 +18,7 @@
   <body class="gruvbox">
     <main>
       <header class="entry">
-        <a href="/">&larr;</a>
+        <a href="/blog.html">&larr;</a>
 
         
         <div class="dates">
@@ -31,7 +31,7 @@
       <h1>A Result Type For Typescript</h1>
 
       <div class="excerpt">
-        <p>a Result type is an abstraction to communicate the outcome of fallible operations. In the JS world, we are probably more used to throwing errors, but this approach has its advantages, especially in message-based communication.</p>
+        <p>a Result type is an abstraction to communicate the outcome of fallible operations. In the JS world, we are more used to throwing errors, but this approach has its advantages, especially in message-based communication.</p>
       </div>
 
       <p>When dealing with fallible operations (things that can produce an error), it is normal to <em>throw</em> the error and <em>catch</em> it somewhere else. Or, if the fallible operation is async, reject a <em>promise</em>, (or use the &ldquo;error-first&rdquo; callback pattern). This has the advantage of being a well-known pattern, so anybody new to the project will quickly understand it.
@@ -44,23 +44,19 @@ However, there are situations where these approaches get messy, or are not possi
 <p>But what about errors? Many things can go wrong in the background process.
 One idea would be to send <code>null</code> or <code>undefined</code> as the <code>data</code> message, but we loose the ability to communicate information about the error to the main process.</p>
 
-<p>An alternative would be to send an <code>error</code> message, instead of a <code>data</code> one. This implies that the main process needs two listeners, one for <code>data</code> and one for <code>error</code>. And what do we do if we have many of this kind of transactions between main and background? Should we have a different error channel for each, or a single one to communicate all errors? Both ways would work just fine, and this could be a good approach, especially if you plan to handle all errors the same way in the main process.</p>
+<p>An alternative would be to send an <code>error</code> message, instead of a <code>data</code> one. This implies that the main process needs two listeners, one for <code>data</code> and one for <code>error</code>. And what do we do if we have many of this kind of transactions between main and background? Should we have a different error channel for each, or a single one to communicate all errors?</p>
 
-<p>But I didn&rsquo;t like the idea of having channels dedicated to errors. I wanted to communicate errors or values the same way, and to do it in a TS-friendly way, so I can have type information available without any casting or type guarding.</p>
+<p>Both ways would work just fine. But I didn&rsquo;t like the idea of having channels dedicated to errors. I wanted to communicate errors or values the same way, and to do it in a TS-friendly way, so I can have type information available without any casting or type guarding.</p>
 
-<p>That&rsquo;s when I came across an article suggesting an approximation of Rust&rsquo;s <code>Result</code> for TS. I wish I could find the article to link it here, unfortunately I didn&rsquo;t save it and it&rsquo;s been a while, but I&rsquo;ll try to find it and edit this post as soon as I do.</p>
-
-<p>The implementation itself is quite simple, it&rsquo;s just this:</p>
+<p>That&rsquo;s when <code>Result</code> comes in. The implementation itself is quite simple, it&rsquo;s just this:</p>
 
 <pre><code class="language-typescript">type Result&lt;E, V&gt; = { status: &quot;error&quot;; error: E } | { status: &quot;success&quot;; value: V }
 </code></pre>
 
-<p>The <em>status</em> flag and the <em>union</em> allow TS to infer which one of those two types we are working with based on the value of <code>status</code>.</p>
-
-<p>At first, I was using a boolean flag to tell errors from successes, <code>{ success: false; error: E } | { success: true, value: V }</code> that is. But after running into some TS quirks, I realized it&rsquo;s much easier on TS to use a string here. If you feel like experimenting, try the boolean option and compile your code with <code>tsc</code>, run it with <code>ts-node</code>, copy/paste in the typescript playground, and you&rsquo;ll probably run into the same inconsistencies I have.</p>
+<p>The <em>status</em> flag and the <em>union</em> allow TS to infer which one of those two types we are working with based on the value of <code>status</code> (it&rsquo;s a <em>discriminated union</em>).</p>
 
 <p>You may be wondering why not make <code>Result</code> generic over the <code>value</code> only, instead of both the <code>error</code> and the <code>value</code>. So, instead of <code>Result&lt;E, V&gt;</code>, just <code>Result&lt;V&gt;</code>, and then <code>{ status: &quot;error&quot;, error: Error }</code>.
-That would work too, especially if you are not planning on using custom errors, but I am. And if I run into a scenario where I don&rsquo;t have a custom error to use, I simply use <code>Error</code>. So that&rsquo;s the only reason, the flexibility.</p>
+That would work too, especially if you are not planning on using custom errors, but I am.</p>
 
 <p>Let&rsquo;s go through an example. Imagine we have a voting platform, where we have several proposals and users can vote <em>Yes</em> or <em>No</em>. We will create a <code>Ballot</code> type like so:</p>
 
@@ -149,7 +145,7 @@ if (ballotResult.status === &quot;success&quot;) {
   : ballotResult.error.name
 </code></pre>
 
-<p>A week or so after originally writing this article, while working on a new article about Node worker threads, I found out that Node is using this exact same approach for its <code>PromiseSettledResult</code>, it looks something like:</p>
+<p>Node is using this exact same approach for its <code>PromiseSettledResult</code>, it looks something like:</p>
 
 <pre><code class="language-typescript">interface PromiseFulfilledResult&lt;T&gt; {
   status: &quot;fulfilled&quot;;
@@ -164,11 +160,7 @@ interface PromiseRejectedResult {
 type PromiseSettledResult&lt;T&gt; = PromiseFulfilledResult&lt;T&gt; | PromiseRejectedResult;
 </code></pre>
 
-<p>Isn&rsquo;t that great? I feel more confident introducing this pattern to a team having an example of its usage in Node itself. Also, remember that I said using booleans instead of a <em>status</em> string was causing some inconsistencies? It&rsquo;s good to see that Node also uses a <em>status</em> string.</p>
-
-<p>I like the idea of introducing two interfaces, in our case they could be <code>ResultSuccess</code> and <code>ResultError</code> for example, but I also like the idea of not introducing too many types. So, I&rsquo;ll leave this example as is, but depending on the project, I may go with the additional interfaces in certain circumstances.</p>
-
-<p>That&rsquo;s it.</p>
+<p>.</p>
 
     </main>
     
@@ -176,7 +168,7 @@ type PromiseSettledResult&lt;T&gt; = PromiseFulfilledResult&lt;T&gt; | PromiseRe
   <nav>
     <div>
       <a href="/">HOME</a>
-      <a href="/about.html">ABOUT</a>
+      <a href="/blog.html">BLOG</a>
       <a href="/blog/feed.xml">RSS</a>
     </div>
     <div>

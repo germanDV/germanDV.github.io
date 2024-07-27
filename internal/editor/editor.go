@@ -93,7 +93,7 @@ type PageLink struct {
 	Tags        []string
 }
 
-// GenerateIndex (re)creates the index.html page listing all published entries.
+// GenerateIndex (re)creates the blog.html page listing all published entries.
 func GenerateIndex() error {
 	files, err := filer.ListPages()
 	if err != nil {
@@ -146,7 +146,7 @@ func GenerateIndex() error {
 	}
 	defer indexWriter.Close()
 
-	index := filepath.Join("templates", "index.html")
+	index := filepath.Join("templates", "blog.html")
 	footer := filepath.Join("templates", "footer.html")
 	tmpl, err := template.ParseFiles(index, footer)
 	if err != nil {

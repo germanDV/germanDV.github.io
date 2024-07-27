@@ -18,7 +18,7 @@
   <body class="gruvbox">
     <main>
       <header class="entry">
-        <a href="/">&larr;</a>
+        <a href="/blog.html">&larr;</a>
 
         
         <div class="dates">
@@ -33,7 +33,7 @@
         <p>In Go, it&#39;s generally fine to run hundreds of thousands (even millions) of goroutines. However, you may need to limit them. One of the ways to do so is by implementing a pool of workers or threadpool.</p>
       </div>
 
-      <p>If you have some background with <em>Node</em>, as I do, you&rsquo;ve probably seen the pattern where you spawn one instance of your program per CPU. Goroutines are not like that, you can run hundreds of thousands of them, even millions. That&rsquo;s because goroutines are <strong>green threads</strong>, not <strong>os threads</strong>. They are handled by Go and not by the OS directly.</p>
+      <p>You can run hundreds of thousands of goroutines because they are <strong>green threads</strong>, not <strong>os threads</strong>. They are handled by Go and not by the OS directly.</p>
 
 <p>Go handles the management of os threads. If you need to control the number of operating system threads allocated, you can use <code>GOMAXPROCS</code>. By default, Go programs run with <code>GOMAXPROCS</code> set to the number of cores available. So, most of the times, you needn&rsquo;t worry about it.</p>
 
@@ -131,7 +131,7 @@ func calcArea(pointStr string) {
 }
 </code></pre>
 
-<p>We could read the entire file into memory instead of using a stream, depending on the size of the file, you may prefer one or the other. Generally speaking, I prefer working with streams to know my programs can handle files of any size.</p>
+<p>We could read the entire file into memory instead of using a stream, depending on the size of the file you may prefer one or the other. Generally speaking, I prefer working with streams to know my programs can handle files of any size.</p>
 
 <p>It would look something like:</p>
 
@@ -152,7 +152,7 @@ for _, line := range strings.Split(string(fileBytes), &quot;\n&quot;) {
 
 <p>For me, it&rsquo;s around 3.7 seconds, but your results may be totally different. Check it out.</p>
 
-<p>Let&rsquo;s now use a threadpool. We will first imagine the kind of API we want it to expose and then build it, it&rsquo;s a nice design technique in my opinion.</p>
+<p>Let&rsquo;s now use a threadpool. We will first imagine the kind of API we want it to expose and then build it.</p>
 
 <p>I want to be able to:</p>
 
@@ -245,8 +245,6 @@ func calcArea(pointStr string) {
   fmt.Println(math.Abs(area) / 2.0)
 }
 </code></pre>
-
-<p>For this implementation, I decided that the constructor, the <code>New</code> function, would take both the number of threads and the function that the workers need to run. You may prefer to provide the task at a later point. But I figured this was the simplest way of explaining it and creating a brief but somewhat real example.</p>
 
 <p>Let&rsquo;s have a first go at the threadpool implementation:</p>
 
@@ -410,7 +408,7 @@ func main() {
 
 <p>If you run the code now, you should see the expected output, the three areas and the &ldquo;<em>Done in x</em>&rdquo; message. You can now switch back to <em>polygons.txt</em> instead of <em>mini.txt</em>, and get rid of the <code>time.Sleep(200 * time.Millisecond)</code> line in <code>calcArea</code>.</p>
 
-<p>Running the code with a pool of 1k threads, takes around 2 secs for me, compared to the ~3.7 of the initial version, that&rsquo;s a nice improvement, and we had fun building a threadpool, a good day at the office.</p>
+<p>Running the code with a pool of 1k threads, takes around 2 secs for me, compared to the ~3.7 of the initial version, that&rsquo;s a nice improvement, and we had fun building a threadpool.</p>
 
 <p>Before we wrap up, one last thing that might come in handy is checking the number of goroutines we&rsquo;re using. This is helpful to confirm our understanding and you might use it if you play around with this implementation and are not sure the threadpool is keeping the expected cap on the number of goroutines.</p>
 
@@ -446,7 +444,7 @@ Done in 2s
   <nav>
     <div>
       <a href="/">HOME</a>
-      <a href="/about.html">ABOUT</a>
+      <a href="/blog.html">BLOG</a>
       <a href="/blog/feed.xml">RSS</a>
     </div>
     <div>

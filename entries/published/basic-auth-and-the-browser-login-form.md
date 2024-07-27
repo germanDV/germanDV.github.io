@@ -14,7 +14,7 @@ It looks something like this:
 Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
 ```
 
-Let's go through an example. Imagine I have a `/admin` route in this site (I don't but I may add one to edit posts, maybe). Since it's only me who would be accessing that route, and I don't have any other private resources, I figure basic auth is good enough, and it will save a lot of work.
+Let's go through an example. Imagine I have a `/admin` route in this site. Since it's only me who would be accessing that route, and I don't have any other private resources, I figure basic auth is good enough, and it will save a lot of work.
 
 First thing that happens is that the browser GETs `/admin`. The server must return a **401** and the header `WWW-Authenticate: Basic`. When the browser gets this response, it will display a login prompt, asking users to enter username and password.
 
@@ -231,7 +231,7 @@ func validCredentials(candidateUsername, candidatePassword string) bool {
 }
 ```
 
-Everything should still be working the same way. One final thing I'd like to address is the fact that our `validCredentials` function is not the safest, it's vulnerable to timing attacks. When we compare `candidatePassword != password`, the more correct characters we have, the longer it will take the function to return, which means an attacker could eventually discover the password, one character at a time, by meassuring the response time (the same goes for the username of course, for any string comparison).
+Everything should still be working the same way. One final thing I'd like to address is the fact that our `validCredentials` function is not the safest, it's vulnerable to timing attacks. When we compare `candidatePassword != password`, the more correct characters we have, the longer it will take the function to return, which means an attacker could eventually discover the password, one character at a time, by meassuring the response time.
 
 To prevent this, Go provides us with `subtle.ConstantTimeCompare`. One caveat, the comparison will be in constant time as long as both inputs are of the same length, so, as an extra security meassure, we will hash the inputs before comparison. It doesn't really matter how we hash them, the important part here is not the hashing algorithm, but the fact that we produce same-length inputs.
 

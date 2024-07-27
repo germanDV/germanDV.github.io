@@ -139,7 +139,7 @@ a:hover {
 p {
   text-align: justify;
   text-indent: 2ch;
-  margin: 1.5rem 0;
+  margin: 1.1rem 0;
 }
 
 pre {
@@ -229,6 +229,31 @@ blockquote {
   font-style: italic;
   border-left: 10px solid var(--accent-bg-color);
   padding-left: 20px;
+}
+
+.project-list {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin: 24px 0;
+  @media only screen and (max-width: 750px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.project-card {
+  border: 2px solid var(--accent-bg-color);
+  border-radius: 4px;
+  padding: 8px 16px;
+  box-shadow: 0 0 8px var(--accent-bg-color);
+  a.title {
+    font-size: 1.5rem;
+    display: block;
+    margin-bottom: 8px;
+  }
+  p {
+    text-align: left;
+  }
 }
 
 .post-list > li {

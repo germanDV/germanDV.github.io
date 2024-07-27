@@ -509,10 +509,6 @@ func Switch(db *pgxpool.Pool, empA int, empB int) error {
 }
 ```
 
-Thanks to the possibility of `defer tx.Rollback()`, I personally don't see `pgx.BeginFunc` as a huge
-improvement or a much better option, but one could argue it is more readable since deferring the
-rollback could look strange, and some might like that they don't have to manually call commit.
-
 ## End
 
 I have handpicked a few things from pgx that I think are especially useful and not necessarily super clear in the documentation.

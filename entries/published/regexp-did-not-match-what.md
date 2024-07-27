@@ -153,5 +153,3 @@ class ProdUtil {
 As the quote goes:
 
 > Some people, when confronted with a problem, think "I know, I'll use regular expressions." Now they have two problems.
-
-Be safe out there.

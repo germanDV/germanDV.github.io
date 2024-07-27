@@ -18,7 +18,7 @@
   <body class="gruvbox">
     <main>
       <header class="entry">
-        <a href="/">&larr;</a>
+        <a href="/blog.html">&larr;</a>
 
         
         <div class="dates">
@@ -521,10 +521,6 @@ func Switch(db *pgxpool.Pool, empA int, empB int) error {
 }
 </code></pre>
 
-<p>Thanks to the possibility of <code>defer tx.Rollback()</code>, I personally don&rsquo;t see <code>pgx.BeginFunc</code> as a huge
-improvement or a much better option, but one could argue it is more readable since deferring the
-rollback could look strange, and some might like that they don&rsquo;t have to manually call commit.</p>
-
 <h2>End</h2>
 
 <p>I have handpicked a few things from pgx that I think are especially useful and not necessarily super clear in the documentation.
@@ -536,7 +532,7 @@ So hopefully this is helpful even for developers who already had some experience
   <nav>
     <div>
       <a href="/">HOME</a>
-      <a href="/about.html">ABOUT</a>
+      <a href="/blog.html">BLOG</a>
       <a href="/blog/feed.xml">RSS</a>
     </div>
     <div>
